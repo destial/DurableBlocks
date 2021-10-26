@@ -5,7 +5,6 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_8_R2.BlockPosition;
 import net.minecraft.server.v1_8_R2.MobEffect;
-import net.minecraft.server.v1_8_R2.NetworkManager;
 import net.minecraft.server.v1_8_R2.Packet;
 import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig;
 import net.minecraft.server.v1_8_R2.PacketPlayOutBlockBreakAnimation;
@@ -24,17 +23,13 @@ import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
-import java.lang.reflect.Field;
-
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
-            Field channelField = NetworkManager.class.getDeclaredField("i");
-            channelField.setAccessible(true);
-            Channel channel = (Channel) channelField.get(player.getHandle().playerConnection.networkManager);
+            Channel channel = player.getHandle().playerConnection.networkManager.k;
             ChannelDuplexHandler handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
