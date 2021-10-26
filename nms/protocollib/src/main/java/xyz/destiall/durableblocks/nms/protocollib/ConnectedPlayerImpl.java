@@ -1,10 +1,12 @@
 package xyz.destiall.durableblocks.nms.protocollib;
 
 import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
+import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.packetwrapper.WrapperPlayServerEntityEffect;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -41,7 +43,10 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendBlockChange(Location from, Material to) {
-
+        WrapperPlayServerBlockChange packet = new WrapperPlayServerBlockChange();
+        packet.setLocation(new BlockPosition(from.toVector()));
+        packet.setBlockData(WrappedBlockData.createData(to));
+        packet.sendPacket(player);
     }
 
     @Override
@@ -52,7 +57,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public void addFatigue() {
         WrapperPlayServerEntityEffect effect = new WrapperPlayServerEntityEffect();
-        effect.setEntityID(player.getEntityId());
+        effect.setEntityID((int)(Math.random() * 500));
         effect.setDuration(20);
         effect.setEffectID((byte) 0x04);
         effect.setAmplifier((byte) 255);

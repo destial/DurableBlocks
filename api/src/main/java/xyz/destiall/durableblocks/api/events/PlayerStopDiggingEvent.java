@@ -18,7 +18,6 @@ public class PlayerStopDiggingEvent extends PlayerEvent implements Cancellable {
     }
 
     public static final HandlerList list = new HandlerList();
-
     @Override
     public HandlerList getHandlers() {
         return list;
