@@ -29,17 +29,15 @@ public class NMSImpl implements NMS {
                     BlockPosition position = packet.getBlockPositionModifier().getValues().stream().findFirst().get();
                     Location location = position.toLocation(event.getPlayer().getWorld());
                     if (packet.getPlayerDigTypes().read(0).equals(EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)) {
-                        Bukkit.getPluginManager().callEvent(new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock()));
+                        PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
+                        Bukkit.getPluginManager().callEvent(e);
+                        event.setCancelled(e.isCancelled());
                     } else {
-                        Bukkit.getPluginManager().callEvent(new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock()));
+                        PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());
+                        Bukkit.getPluginManager().callEvent(e);
+                        event.setCancelled(e.isCancelled());
                     }
                 }
-                //super.onPacketReceiving(event);
-            }
-
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                //super.onPacketSending(event);
             }
         });
     }

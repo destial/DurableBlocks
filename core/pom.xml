@@ -41,6 +41,18 @@
             <version>0.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_8_R2</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_8_R3</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -75,7 +87,5 @@
                 </executions>
             </plugin>
         </plugins>
-
     </build>
-
 </project>

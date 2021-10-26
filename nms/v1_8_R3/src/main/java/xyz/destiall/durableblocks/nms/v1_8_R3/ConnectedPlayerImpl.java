@@ -1,24 +1,23 @@
-package xyz.destiall.durableblocks.nms.v1_8_R1;
+package xyz.destiall.durableblocks.nms.v1_8_R3;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.server.v1_8_R1.BlockPosition;
-import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
-import net.minecraft.server.v1_8_R1.MobEffect;
-import net.minecraft.server.v1_8_R1.NetworkManager;
-import net.minecraft.server.v1_8_R1.Packet;
-import net.minecraft.server.v1_8_R1.PacketPlayInBlockDig;
-import net.minecraft.server.v1_8_R1.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.server.v1_8_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_8_R1.PacketPlayOutEntityEffect;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.MobEffect;
+import net.minecraft.server.v1_8_R3.NetworkManager;
+import net.minecraft.server.v1_8_R3.Packet;
+import net.minecraft.server.v1_8_R3.PacketPlayInBlockDig;
+import net.minecraft.server.v1_8_R3.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.server.v1_8_R3.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_8_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R3.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
@@ -43,11 +42,11 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                         PacketPlayInBlockDig dig = (PacketPlayInBlockDig) msg;
                         Block block = new Location(player.getWorld(), dig.a().getX(), dig.a().getY(), dig.a().getZ()).getBlock();
                         boolean cancelled = false;
-                        if (dig.c().equals(EnumPlayerDigType.START_DESTROY_BLOCK)) {
+                        if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK)) {
                             PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(player, block);
                             Bukkit.getPluginManager().callEvent(e);
                             cancelled = e.isCancelled();
-                        } else if (dig.c().equals(EnumPlayerDigType.STOP_DESTROY_BLOCK) || dig.c().equals(EnumPlayerDigType.ABORT_DESTROY_BLOCK)) {
+                        } else if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) || dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK)) {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
                             Bukkit.getPluginManager().callEvent(e);
                             cancelled = e.isCancelled();
