@@ -1,0 +1,8 @@
+name: DurableBlocks
+version: 0.1
+main: xyz.destiall.durableblocks.DurableBlocksPlugin
+authors: [ destiall ]
+description: Custom block breaking
+api-version: 1.13
+softdepend:
+  - ProtocolLib
