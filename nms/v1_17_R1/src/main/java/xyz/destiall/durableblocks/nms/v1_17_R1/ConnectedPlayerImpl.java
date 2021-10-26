@@ -1,23 +1,23 @@
-package xyz.destiall.durableblocks.nms.v1_9_R1;
+package xyz.destiall.durableblocks.nms.v1_17_R1;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.server.v1_9_R1.BlockPosition;
-import net.minecraft.server.v1_9_R1.MobEffect;
-import net.minecraft.server.v1_9_R1.MobEffectList;
-import net.minecraft.server.v1_9_R1.Packet;
-import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig;
-import net.minecraft.server.v1_9_R1.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.server.v1_9_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_9_R1.PacketPlayOutEntityEffect;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
+import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_9_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
@@ -30,19 +30,19 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
-            Channel channel = player.getHandle().playerConnection.networkManager.channel;
+            Channel channel = player.getHandle().b.a.k;
             ChannelDuplexHandler handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
                         PacketPlayInBlockDig dig = (PacketPlayInBlockDig) msg;
-                        Block block = new Location(player.getWorld(), dig.a().getX(), dig.a().getY(), dig.a().getZ()).getBlock();
+                        Block block = new Location(player.getWorld(), dig.b().getX(), dig.b().getY(), dig.b().getZ()).getBlock();
                         boolean cancelled = false;
-                        if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK)) {
+                        if (dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.a)) {
                             PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(player, block);
                             Bukkit.getPluginManager().callEvent(e);
                             cancelled = e.isCancelled();
-                        } else if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) || dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK)) {
+                        } else if (dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.b) || dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.c)) {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
                             Bukkit.getPluginManager().callEvent(e);
                             cancelled = e.isCancelled();
@@ -60,7 +60,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendPacket(Object packet) {
-        player.getHandle().playerConnection.sendPacket((Packet<?>) packet);
+        player.getHandle().b.sendPacket((Packet<?>) packet);
     }
 
     @Override
@@ -70,8 +70,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendBlockChange(Location from, Material to) {
-        PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(((CraftWorld)from.getWorld()).getHandle(), new BlockPosition(from.getBlockX(), from.getBlockY(), from.getBlockZ()));
-        packet.block = CraftMagicNumbers.getBlock(to).getBlockData();
+        PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(new BlockPosition(from.getBlockX(), from.getBlockY(), from.getBlockZ()), CraftMagicNumbers.getBlock(to).getBlockData());
         sendPacket(packet);
     }
 

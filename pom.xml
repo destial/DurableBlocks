@@ -17,7 +17,9 @@
         <module>nms/v1_9_R1</module>
         <module>nms/v1_9_R2</module>
         <module>nms/v1_12_R1</module>
+        <module>nms/v1_17_R1</module>
         <module>core</module>
         <module>api</module>
+        <module>build</module>
     </modules>
 </project>

@@ -4,22 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>core</artifactId>
+    <artifactId>v1_17_R1</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>xyz.destiall.durableblocks</groupId>
         <artifactId>root</artifactId>
+        <groupId>xyz.destiall.durableblocks</groupId>
         <version>0.1</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <dependencies>
+        <!-- Spigot 1.8 -->
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <artifactId>spigot</artifactId>
+            <version>1.17.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -30,23 +31,20 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>16</source>
+                    <target>16</target>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
+                    <executable>C:\Program Files\Java\jdk-16.0.1\bin\javac</executable>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
 </project>

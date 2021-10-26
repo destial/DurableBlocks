@@ -59,7 +59,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendPacket(Object packet) {
-        player.getHandle().playerConnection.sendPacket((Packet) packet);
+        player.getHandle().playerConnection.sendPacket((Packet<?>) packet);
     }
 
     @Override
