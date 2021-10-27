@@ -9,11 +9,9 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
-import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
 import xyz.destiall.durableblocks.api.NMS;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
@@ -45,10 +43,5 @@ public class NMSImpl implements NMS {
     @Override
     public ConnectedPlayer registerPlayer(Player player) {
         return new ConnectedPlayerImpl(player);
-    }
-
-    @Override
-    public DurableBlock registerBlock(Block block) {
-        return new DurableBlockImpl(block);
     }
 }

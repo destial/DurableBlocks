@@ -11,8 +11,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import xyz.destiall.durableblocks.DurableBlocksPlugin;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
@@ -25,11 +25,14 @@ import java.util.Map;
 import java.util.UUID;
 
 public class BlockListener implements Listener {
+    private final DurableBlocksPlugin plugin;
+
     private final HashMap<UUID, HashMap<DurableBlock, Long>> blockExpiry;
     private final HashMap<UUID, HashMap<DurableBlock, Long>> blockNextPossible;
     private final HashMap<UUID, DurableBlock> miningBlocks;
 
-    public BlockListener() {
+    public BlockListener(DurableBlocksPlugin plugin) {
+        this.plugin = plugin;
         blockExpiry = new HashMap<>();
         miningBlocks = new HashMap<>();
         blockNextPossible = new HashMap<>();
@@ -110,7 +113,7 @@ public class BlockListener implements Listener {
             return;
         }
         HashMap<DurableBlock, Long> expiries = blockExpiry.computeIfAbsent(e.getPlayer().getUniqueId(), k -> new HashMap<>());
-        expiries.put(durableBlock, System.currentTimeMillis() + (1000 * 5));
+        expiries.put(durableBlock, System.currentTimeMillis() + durableBlock.getExpiryLength());
         ConnectedPlayer connectedPlayer = DurableBlocksAPI.getManager().getPlayer(e.getPlayer().getUniqueId());
         // connectedPlayer.removeFatigue();
     }
@@ -133,13 +136,8 @@ public class BlockListener implements Listener {
         expiries.entrySet().removeIf(en -> en.getKey() == durableBlock);
         // block.getBlock().getWorld().dropItem(block.getBlock().getLocation(), new ItemStack(blockType, 1));
         final Material blockType = block.getBlock().getType();
-        player.getBasePlayer().playSound(block.getBlock().getLocation(), Sound.DIG_STONE, (float) 1.0, (float) 0.8);
+        player.getBasePlayer().playSound(block.getBlock().getLocation(), Sound.BLOCK_STONE_BREAK, (float) 1.0, (float) 0.8);
         player.getBasePlayer().playEffect(block.getBlock().getLocation(), Effect.STEP_SOUND, blockType);
-        if (block.getBlock().getType() == Material.GRASS) {
-            block.getBlock().setType(Material.DIRT);
-        } else {
-            block.getBlock().setType(Material.AIR);
-        }
-
+        block.getBlock().setType(Material.DIRT);
     }
 }

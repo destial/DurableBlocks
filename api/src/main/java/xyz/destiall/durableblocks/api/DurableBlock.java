@@ -1,5 +1,7 @@
 package xyz.destiall.durableblocks.api;
 
+import org.bukkit.Effect;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 
 public interface DurableBlock {
@@ -7,7 +9,10 @@ public interface DurableBlock {
     int getStage();
     void setStage(int stage);
     int nextStage();
-    default long timePerStage() {
-        return 500;
-    }
+    long timePerStage();
+    void setTimePerStage(long time);
+    long getExpiryLength();
+    void setExpiryLength(long expiry);
+    Sound getBreakSound();
+    Effect getBreakEffect();
 }

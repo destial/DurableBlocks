@@ -31,6 +31,13 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>nexus</id>
+            <url>https://repo.destial.xyz/repository/maven-snapshots</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>

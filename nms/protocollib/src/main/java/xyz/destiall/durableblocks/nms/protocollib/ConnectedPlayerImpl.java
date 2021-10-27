@@ -1,6 +1,9 @@
 package xyz.destiall.durableblocks.nms.protocollib;
 
-import com.comphenix.packetwrapper.*;
+import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
+import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
+import com.comphenix.packetwrapper.WrapperPlayServerBoss;
+import com.comphenix.packetwrapper.WrapperPlayServerEntityEffect;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
@@ -81,6 +84,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
         effect.setDuration(20);
         effect.setEffectID((byte) 0x04);
         effect.setAmplifier((byte) 255);
+        effect.setHideParticles(true);
         effect.sendPacket(player);
     }
 

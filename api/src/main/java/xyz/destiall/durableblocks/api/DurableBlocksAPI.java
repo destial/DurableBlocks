@@ -1,11 +1,28 @@
 package xyz.destiall.durableblocks.api;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Effect;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public interface DurableBlocksAPI {
     AtomicReference<DurableBlocksAPI> inst = new AtomicReference<>(null);
     AtomicReference<NMS> nmst = new AtomicReference<>(null);
     AtomicReference<Manager> player = new AtomicReference<>(null);
+    AtomicReference<DurableConfig> config = new AtomicReference<>(null);
+
     static NMS getNMS() {
         return nmst.get();
     }
@@ -34,5 +51,41 @@ public interface DurableBlocksAPI {
 
     static Manager getManager() {
         return player.get();
+    }
+
+    static DurableConfig getConfig() {
+        if (config.get() == null) {
+            reloadConfig();
+        }
+        return config.get();
+    }
+
+    static void reloadConfig() {
+        File configFile = new File(((Plugin) get()).getDataFolder(), "config.yml");
+        try {
+            FileConfiguration config;
+            if (configFile.createNewFile()) {
+                config = new YamlConfiguration();
+                List<Map<String, Map<String, Object>>> materialMappings = new ArrayList<>();
+                for (Material material : Material.values()) {
+                    if (!material.isBlock()) continue;
+                    HashMap<String, Map<String, Object>> path = new HashMap<>();
+                    HashMap<String, Object> values = new HashMap<>();
+                    values.put("milliseconds-per-stage", material.isBurnable() ? 200 : material.hasGravity() ? 200 : material.isTransparent() ? 100 : 500);
+                    values.put("expiry-length-after-stop-mining", 5000);
+                    values.put("block-break-sound", Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get().name());
+                    values.put("block-break-effect", Arrays.stream(Effect.values()).filter(s -> s.name().equals("STEP_SOUND")).findFirst().get().name());
+                    path.put(material.name(), values);
+                    materialMappings.add(path);
+                }
+                config.set("blocks", materialMappings);
+                config.save(configFile);
+            } else {
+                config = YamlConfiguration.loadConfiguration(configFile);
+            }
+            DurableBlocksAPI.config.set(new DurableConfig(config));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,12 +1,15 @@
 package xyz.destiall.durableblocks;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
-import xyz.destiall.durableblocks.api.NMS;
 import xyz.destiall.durableblocks.api.Manager;
+import xyz.destiall.durableblocks.api.NMS;
 import xyz.destiall.durableblocks.listeners.BlockListener;
 import xyz.destiall.durableblocks.listeners.PlayerListener;
+
+import java.io.IOException;
 
 public final class DurableBlocksPlugin extends JavaPlugin implements DurableBlocksAPI {
 
@@ -26,16 +29,31 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
             NMS nms = (NMS) clazz.newInstance();
             DurableBlocksAPI.setNMS(nms);
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            e.printStackTrace();
+            getLogger().warning("Unable to find a compatible version with this plugin! Shutting down!");
+            getLogger().warning("Please use ProtocolLib for maximum compatibility!");
             Bukkit.getPluginManager().disablePlugin(this);
         }
-        Bukkit.getPluginManager().registerEvents(new BlockListener(), this);
+        try {
+            EnumList enumList = new EnumList();
+            enumList.saveSoundList();
+            enumList.saveMaterialList();
+            enumList.saveEffectList();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Bukkit.getPluginManager().registerEvents(new BlockListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
+    }
 
+    @Override
+    public void reloadConfig() {
+        getLogger().info("Reloading...");
+        DurableBlocksAPI.reloadConfig();
+        getLogger().info("Completed reloading...");
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        HandlerList.unregisterAll(this);
     }
 }

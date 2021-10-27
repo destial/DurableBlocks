@@ -30,7 +30,7 @@ public class Manager {
     public DurableBlock registerBlock(Block block) {
         DurableBlock db = blocks.get(block.getLocation());
         if (db != null) return db;
-        blocks.put(block.getLocation(), DurableBlocksAPI.getNMS().registerBlock(block));
+        blocks.put(block.getLocation(), new DurableBlockImpl(block));
         return blocks.get(block.getLocation());
     }
 
