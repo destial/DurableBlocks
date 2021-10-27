@@ -112,7 +112,7 @@ public class BlockListener implements Listener {
         HashMap<DurableBlock, Long> expiries = blockExpiry.computeIfAbsent(e.getPlayer().getUniqueId(), k -> new HashMap<>());
         expiries.put(durableBlock, System.currentTimeMillis() + (1000 * 5));
         ConnectedPlayer connectedPlayer = DurableBlocksAPI.getManager().getPlayer(e.getPlayer().getUniqueId());
-        connectedPlayer.removeFatigue();
+        // connectedPlayer.removeFatigue();
     }
 
     @EventHandler

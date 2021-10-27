@@ -25,6 +25,12 @@
         </dependency>
         <dependency>
             <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>core</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
             <artifactId>protocollib</artifactId>
             <version>0.1</version>
             <scope>compile</scope>

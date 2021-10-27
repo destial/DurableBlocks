@@ -3,15 +3,7 @@ package xyz.destiall.durableblocks.nms.v1_8_R1;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.server.v1_8_R1.BlockPosition;
-import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
-import net.minecraft.server.v1_8_R1.MobEffect;
-import net.minecraft.server.v1_8_R1.NetworkManager;
-import net.minecraft.server.v1_8_R1.Packet;
-import net.minecraft.server.v1_8_R1.PacketPlayInBlockDig;
-import net.minecraft.server.v1_8_R1.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.server.v1_8_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_8_R1.PacketPlayOutEntityEffect;
+import net.minecraft.server.v1_8_R1.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,6 +14,7 @@ import org.bukkit.craftbukkit.v1_8_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
+import xyz.destiall.durableblocks.api.DurabilityBar;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
@@ -83,6 +76,17 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public void updateBlockNotify(Location location) {
         ((CraftWorld) player.getWorld()).getHandle().notify(new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
+    }
+
+    @Override
+    public void sendActionBar(String message) {
+        PacketPlayOutChat packet = new PacketPlayOutChat(ChatSerializer.a("{\"text\": \"" + message + "\"}"));
+        sendPacket(packet);
+    }
+
+    @Override
+    public void sendDurabilityBar(DurabilityBar bar) {
+
     }
 
     @Override

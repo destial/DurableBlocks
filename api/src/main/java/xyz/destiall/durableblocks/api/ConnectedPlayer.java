@@ -10,6 +10,8 @@ public interface ConnectedPlayer {
     void sendBlockBreakingAnimation(Block block, int stage);
     void sendBlockChange(Location from, Material to);
     void updateBlockNotify(Location location);
+    void sendActionBar(String message);
+    void sendDurabilityBar(DurabilityBar bar);
     void addFatigue();
     void removeFatigue();
     Player getBasePlayer();

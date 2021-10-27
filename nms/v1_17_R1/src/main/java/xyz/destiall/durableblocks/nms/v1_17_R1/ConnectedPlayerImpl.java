@@ -4,11 +4,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.core.BlockPosition;
+import net.minecraft.network.chat.ChatMessageType;
+import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
-import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectList;
 import org.bukkit.Bukkit;
@@ -21,8 +20,11 @@ import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
+import xyz.destiall.durableblocks.api.DurabilityBar;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
+
+import java.util.UUID;
 
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
@@ -77,6 +79,16 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public void updateBlockNotify(Location location) {
         ((CraftWorld) player.getWorld()).getHandle().a(new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()), true);
+    }
+
+    @Override
+    public void sendActionBar(String message) {
+
+    }
+
+    @Override
+    public void sendDurabilityBar(DurabilityBar bar) {
+
     }
 
     @Override
