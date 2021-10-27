@@ -1,6 +1,5 @@
 package xyz.destiall.durableblocks.api;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -68,17 +67,23 @@ public interface DurableBlocksAPI {
                 config = new YamlConfiguration();
                 List<Map<String, Map<String, Object>>> materialMappings = new ArrayList<>();
                 for (Material material : Material.values()) {
-                    if (!material.isBlock()) continue;
+                    if (!material.isBlock() && !material.isSolid()) continue;
                     HashMap<String, Map<String, Object>> path = new HashMap<>();
                     HashMap<String, Object> values = new HashMap<>();
                     values.put("milliseconds-per-stage", material.isBurnable() ? 200 : material.hasGravity() ? 200 : material.isTransparent() ? 100 : 500);
                     values.put("expiry-length-after-stop-mining", 5000);
                     values.put("block-break-sound", Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get().name());
-                    values.put("block-break-effect", Arrays.stream(Effect.values()).filter(s -> s.name().equals("STEP_SOUND")).findFirst().get().name());
+                    values.put("block-break-effect", Effect.STEP_SOUND.name());
+                    values.put("block-break-type", Material.AIR.name());
+                    Map<String, Object> itemDrops = new HashMap<>();
+                    itemDrops.put("item", material.name());
+                    itemDrops.put("amount", 1);
+                    values.put("item-drops", itemDrops);
                     path.put(material.name(), values);
                     materialMappings.add(path);
                 }
                 config.set("blocks", materialMappings);
+                config.set("always-fatigue", true);
                 config.save(configFile);
             } else {
                 config = YamlConfiguration.loadConfiguration(configFile);

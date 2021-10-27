@@ -1,8 +1,10 @@
 package xyz.destiall.durableblocks.api;
 
 import org.bukkit.Effect;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
 
 public interface DurableBlock {
     Block getBlock();
@@ -15,4 +17,6 @@ public interface DurableBlock {
     void setExpiryLength(long expiry);
     Sound getBreakSound();
     Effect getBreakEffect();
+    Material getBrokenBlock();
+    ItemStack[] droppedItems();
 }

@@ -6,14 +6,12 @@ import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_8_R1.BlockPosition;
 import net.minecraft.server.v1_8_R1.ChatSerializer;
 import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
-import net.minecraft.server.v1_8_R1.MobEffect;
 import net.minecraft.server.v1_8_R1.NetworkManager;
 import net.minecraft.server.v1_8_R1.Packet;
 import net.minecraft.server.v1_8_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_8_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_8_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
-import net.minecraft.server.v1_8_R1.PacketPlayOutEntityEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -73,7 +71,8 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendBlockBreakingAnimation(Block block, int stage) {
-        sendPacket(new PacketPlayOutBlockBreakAnimation(player.getEntityId(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage));
+        PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation((int) block.getLocation().length(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage);
+        ((CraftWorld) block.getWorld()).getHandle().getServer().getHandle().sendPacketNearby(block.getX(), block.getY(), block.getZ(), 60, ((CraftWorld) player.getWorld()).getHandle().dimension, packet);
     }
 
     @Override
@@ -101,8 +100,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(4, 20, 255, false, false));
-        sendPacket(packet);
+        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
     }
 
     @Override

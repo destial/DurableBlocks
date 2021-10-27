@@ -18,7 +18,9 @@ import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
 public class NMSImpl implements NMS {
+    private final NMS nms;
     public NMSImpl() {
+        nms = this;
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter((Plugin) DurableBlocksAPI.get(), PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -27,13 +29,17 @@ public class NMSImpl implements NMS {
                     BlockPosition position = packet.getBlockPositionModifier().getValues().stream().findFirst().get();
                     Location location = position.toLocation(event.getPlayer().getWorld());
                     if (packet.getPlayerDigTypes().read(0).equals(EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)) {
-                        PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
-                        Bukkit.getPluginManager().callEvent(e);
-                        event.setCancelled(e.isCancelled());
+                        synchronized (nms) {
+                            PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
+                            Bukkit.getPluginManager().callEvent(e);
+                            event.setCancelled(e.isCancelled());
+                        }
                     } else {
                         PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());
-                        Bukkit.getPluginManager().callEvent(e);
-                        event.setCancelled(e.isCancelled());
+                        synchronized (nms) {
+                            Bukkit.getPluginManager().callEvent(e);
+                            event.setCancelled(e.isCancelled());
+                        }
                     }
                 }
             }

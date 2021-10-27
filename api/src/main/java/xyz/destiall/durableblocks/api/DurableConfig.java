@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class DurableConfig implements Map<String, Object> {
-    public FileConfiguration config;
+public class DurableConfig implements Map<String, Object> {
+    private final FileConfiguration config;
 
     public DurableConfig(FileConfiguration config) {
         this.config = config;
@@ -37,8 +37,11 @@ class DurableConfig implements Map<String, Object> {
         return null;
     }
 
-    public Map<String, Object> getMapping(String path) {
-        return (Map<String, Object>) get(path);
+    public Map<String, Object> getMapping(Material material) {
+        List<Map<String,Object>> list = ((List<Map<String, Object>>) config.getList("blocks"));
+        Map<String, Object> materialMap = list.stream().filter(m -> m.containsKey(material.name())).findFirst().orElse(null);
+        if (materialMap == null) return null;
+        return (Map<String, Object>) materialMap.get(material.name());
     }
 
     public Material getMaterial(String path) {
@@ -59,6 +62,14 @@ class DurableConfig implements Map<String, Object> {
             ((Plugin) DurableBlocksAPI.get()).getLogger().warning("Unable to find effect of " + name + "! Please refer to the effects.txt file for reference");
         }
         return null;
+    }
+
+    public boolean getBool(String path, boolean def) {
+        return config.getBoolean(path, def);
+    }
+
+    public boolean getBool(String path) {
+        return config.getBoolean(path);
     }
 
     public float getFloat(String path, float def) {

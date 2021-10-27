@@ -8,9 +8,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayInBlockDig;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.network.protocol.game.PacketPlayOutBlockChange;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEffect;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -41,12 +38,16 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                         boolean cancelled = false;
                         if (dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.a)) {
                             PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(player, block);
-                            Bukkit.getPluginManager().callEvent(e);
-                            cancelled = e.isCancelled();
+                            synchronized (channel) {
+                                Bukkit.getPluginManager().callEvent(e);
+                                cancelled = e.isCancelled();
+                            }
                         } else if (dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.b) || dig.d().equals(PacketPlayInBlockDig.EnumPlayerDigType.c)) {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
-                            Bukkit.getPluginManager().callEvent(e);
-                            cancelled = e.isCancelled();
+                            synchronized (channel) {
+                                Bukkit.getPluginManager().callEvent(e);
+                                cancelled = e.isCancelled();
+                            }
                         }
                         if (cancelled) return;
                     }
@@ -66,7 +67,8 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendBlockBreakingAnimation(Block block, int stage) {
-        sendPacket(new PacketPlayOutBlockBreakAnimation(player.getEntityId(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage));
+        PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation((int) block.getLocation().length(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage);
+        ((CraftWorld) block.getWorld()).getHandle().getCraftServer().getHandle().sendPacketNearby(player.getHandle(), block.getX(), block.getY(), block.getZ(), 60, ((CraftWorld) player.getWorld()).getHandle().getDimensionKey(), packet);
     }
 
     @Override
@@ -92,8 +94,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(MobEffectList.fromId(4), 20, 255, false, false));
-        sendPacket(packet);
+        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
     }
 
     @Override

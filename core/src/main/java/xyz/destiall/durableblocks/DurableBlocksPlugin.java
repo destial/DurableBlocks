@@ -34,10 +34,12 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
             Bukkit.getPluginManager().disablePlugin(this);
         }
         try {
+            getDataFolder().mkdir();
             EnumList enumList = new EnumList();
             enumList.saveSoundList();
             enumList.saveMaterialList();
             enumList.saveEffectList();
+            DurableBlocksAPI.getConfig();
         } catch (IOException e) {
             e.printStackTrace();
         }

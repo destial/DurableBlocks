@@ -5,14 +5,11 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.IChatBaseComponent;
-import net.minecraft.server.v1_9_R1.MobEffect;
-import net.minecraft.server.v1_9_R1.MobEffectList;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_9_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_9_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_9_R1.PacketPlayOutChat;
-import net.minecraft.server.v1_9_R1.PacketPlayOutEntityEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,12 +40,16 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                         boolean cancelled = false;
                         if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.START_DESTROY_BLOCK)) {
                             PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(player, block);
-                            Bukkit.getPluginManager().callEvent(e);
-                            cancelled = e.isCancelled();
+                            synchronized (channel) {
+                                Bukkit.getPluginManager().callEvent(e);
+                                cancelled = e.isCancelled();
+                            }
                         } else if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) || dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK)) {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
-                            Bukkit.getPluginManager().callEvent(e);
-                            cancelled = e.isCancelled();
+                            synchronized (channel) {
+                                Bukkit.getPluginManager().callEvent(e);
+                                cancelled = e.isCancelled();
+                            }
                         }
                         if (cancelled) return;
                     }
@@ -68,7 +69,8 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendBlockBreakingAnimation(Block block, int stage) {
-        sendPacket(new PacketPlayOutBlockBreakAnimation(player.getEntityId(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage));
+        PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation((int) block.getLocation().length(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage);
+        ((CraftWorld) block.getWorld()).getHandle().getServer().getHandle().sendPacketNearby(player.getHandle(), block.getX(), block.getY(), block.getZ(), 60, ((CraftWorld) player.getWorld()).getHandle().dimension, packet);
     }
 
     @Override
@@ -96,8 +98,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        PacketPlayOutEntityEffect packet = new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(MobEffectList.fromId(4), 20, 255, false, false));
-        sendPacket(packet);
+        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
     }
 
     @Override

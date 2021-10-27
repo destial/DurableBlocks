@@ -3,7 +3,6 @@ package xyz.destiall.durableblocks.nms.protocollib;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.packetwrapper.WrapperPlayServerBoss;
-import com.comphenix.packetwrapper.WrapperPlayServerEntityEffect;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
@@ -38,10 +37,10 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     public void sendBlockBreakingAnimation(Block block, int stage) {
         WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
         BlockPosition bp = new BlockPosition(block.getX(), block.getY(), block.getZ());
-        packet.setEntityID((int)(Math.random() * 500));
+        packet.setEntityID((int) block.getLocation().length());
         packet.setLocation(bp);
         packet.setDestroyStage(stage);
-        packet.sendPacket(player);
+        ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle(), block.getLocation(), 60);
     }
 
     @Override
@@ -79,13 +78,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        WrapperPlayServerEntityEffect effect = new WrapperPlayServerEntityEffect();
-        effect.setEntityID((int)(Math.random() * 500));
-        effect.setDuration(20);
-        effect.setEffectID((byte) 0x04);
-        effect.setAmplifier((byte) 255);
-        effect.setHideParticles(true);
-        effect.sendPacket(player);
+        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
     }
 
     @Override

@@ -1,8 +1,12 @@
 package xyz.destiall.durableblocks.api;
 
 import org.bukkit.Effect;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Map;
 
 class DurableBlockImpl implements DurableBlock {
     private int stage;
@@ -11,13 +15,19 @@ class DurableBlockImpl implements DurableBlock {
     private final Block block;
     private final Sound breakSound;
     private final Effect effect;
+    private final Material convert;
+    private final ItemStack[] drops;
     public DurableBlockImpl(Block block) {
         this.block = block;
-        stage = 0;
-        interval = DurableBlocksAPI.getConfig().getInt("blocks." + block.getType().name() + ".milliseconds-per-stage");
-        expiry = DurableBlocksAPI.getConfig().getInt("blocks." + block.getType().name() + ".expiry-length-after-stop-mining");
-        breakSound = DurableBlocksAPI.getConfig().getSound("blocks." + block.getType().name() + ".block-break-sound");
-        effect = DurableBlocksAPI.getConfig().getEffect("blocks." + block.getType().name() + ".block-break-effect");
+        stage = -1;
+        Map<String, Object> mapping = DurableBlocksAPI.getConfig().getMapping(block.getType());
+        interval = (int) mapping.get("milliseconds-per-stage");
+        expiry = (int) mapping.get("expiry-length-after-stop-mining");
+        breakSound = Sound.valueOf((String) mapping.get("block-break-sound"));
+        effect = Effect.valueOf((String) mapping.get("block-break-effect"));
+        convert = Material.valueOf((String) mapping.get("block-break-type"));
+        // TODO: Add drops
+        drops = null;
     }
     @Override
     public Block getBlock() {
@@ -37,7 +47,7 @@ class DurableBlockImpl implements DurableBlock {
     @Override
     public int nextStage() {
         if (stage > 9) {
-            stage = 0;
+            stage = -1;
         }
         return stage++;
     }
@@ -70,5 +80,15 @@ class DurableBlockImpl implements DurableBlock {
     @Override
     public Effect getBreakEffect() {
         return effect;
+    }
+
+    @Override
+    public Material getBrokenBlock() {
+        return convert;
+    }
+
+    @Override
+    public ItemStack[] droppedItems() {
+        return drops;
     }
 }
