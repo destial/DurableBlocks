@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -75,9 +76,10 @@ public interface DurableBlocksAPI {
                     values.put("block-break-sound", Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get().name());
                     values.put("block-break-effect", Effect.STEP_SOUND.name());
                     values.put("block-break-type", Material.AIR.name());
-                    Map<String, Object> itemDrops = new HashMap<>();
-                    itemDrops.put("item", material.name());
-                    itemDrops.put("amount", 1);
+                    List<Map<String, Object>> itemDrops = new ArrayList<>();
+                    Map<String, Object> itemMapping = new HashMap<>();
+                    itemMapping.put(material.name(), new ItemStack(material, 1));
+                    itemDrops.add(itemMapping);
                     values.put("item-drops", itemDrops);
                     path.put(material.name(), values);
                     materialMappings.add(path);

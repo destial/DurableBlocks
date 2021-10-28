@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurabilityBar;
@@ -78,7 +79,8 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
+        PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 25, 254, true, false);
+        player.addPotionEffect(effect);
     }
 
     @Override

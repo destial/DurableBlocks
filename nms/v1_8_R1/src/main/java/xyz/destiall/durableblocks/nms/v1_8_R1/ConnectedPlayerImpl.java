@@ -20,6 +20,7 @@ import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurabilityBar;
@@ -100,7 +101,8 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void addFatigue() {
-        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
+        PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 25, 254, true, false);
+        player.addPotionEffect(effect);
     }
 
     @Override

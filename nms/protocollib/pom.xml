@@ -27,7 +27,7 @@
     </repositories>
 
     <dependencies>
-        <!-- Spigot API 1.8 -->
+        <!-- Spigot API 1.12 -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>

@@ -4,17 +4,24 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import xyz.destiall.durableblocks.DurableBlocksPlugin;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
+import xyz.destiall.durableblocks.utils.ToolCheck;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +65,7 @@ public class BlockListener implements Listener {
                 }
                 if (!DurableBlocksAPI.getConfig().getBool("always-fatigue")) player.addFatigue();
                 Long time = blockNextPossible.get(entry.getValue());
+                if (time == null) continue;
                 if (time <= System.currentTimeMillis()) {
                     int prev = entry.getValue().getStage();
                     if (prev == 9) {
@@ -68,7 +76,23 @@ public class BlockListener implements Listener {
                     }
                     entry.getValue().nextStage();
                     DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
-                    blockNextPossible.put(entry.getValue(), System.currentTimeMillis() + entry.getValue().timePerStage());
+                    ItemStack inHand = player.getBasePlayer().getItemInHand();
+                    long multiplier = 1;
+                    if (inHand != null) {
+                        if (!entry.getValue().getBlock().getDrops(inHand).isEmpty()) {
+                            if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                                multiplier = inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                            }
+                            if (ToolCheck.isPickaxe(inHand.getType())) {
+                                multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
+                            } else if (ToolCheck.isAxe(inHand.getType())) {
+                                multiplier *= ToolCheck.getAxeLevel(inHand.getType());
+                            } else if (ToolCheck.isShovel(inHand.getType())) {
+                                multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                            }
+                        }
+                    }
+                    blockNextPossible.put(entry.getValue(), System.currentTimeMillis() + (entry.getValue().timePerStage() * (1 / multiplier)));
                 } else {
                     DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
                 }
@@ -88,9 +112,32 @@ public class BlockListener implements Listener {
         if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
         final DurableBlock durableBlock = DurableBlocksAPI.getManager().getBlock(location);
         miningBlocks.put(player.getUniqueId(), durableBlock);
-        blockNextPossible.put(durableBlock, System.currentTimeMillis() + durableBlock.timePerStage());
-        e.setCancelled(true);
+        ItemStack inHand = e.getPlayer().getItemInHand();
+        long multiplier = 1;
+        if (inHand != null) {
+            if (!durableBlock.getBlock().getDrops(inHand).isEmpty()) {
+                if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                    multiplier = inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                }
+                if (ToolCheck.isPickaxe(inHand.getType())) {
+                    multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
+                } else if (ToolCheck.isAxe(inHand.getType())) {
+                    multiplier *= ToolCheck.getAxeLevel(inHand.getType());
+                } else if (ToolCheck.isShovel(inHand.getType())) {
+                    multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                }
+            }
+        }
+        blockNextPossible.put(durableBlock, System.currentTimeMillis() + (durableBlock.timePerStage() * (1 / multiplier)));
+        // e.setCancelled(true);
         blockExpiry.remove(durableBlock);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        final Player player = e.getPlayer();
+        if (player == null || !player.isOnline() || player.getGameMode().equals(GameMode.CREATIVE)) return;
+        if (e.getAction() == Action.LEFT_CLICK_BLOCK) e.setCancelled(true);
     }
 
     @EventHandler
@@ -106,21 +153,32 @@ public class BlockListener implements Listener {
         miningBlocks.remove(e.getPlayer().getUniqueId());
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockDamage(BlockDamageEvent e) {
+        final Player player = e.getPlayer();
+        if (player == null || !player.isOnline() || player.getGameMode().equals(GameMode.CREATIVE)) return;
+        e.setInstaBreak(false);
+        e.setCancelled(true);
+    }
+
     private void breakBlock(final DurableBlock block, final ConnectedPlayer player) {
         if (block.getBlock().getType() == Material.AIR) return;
         final BlockBreakEvent breakEvt = new BlockBreakEvent(block.getBlock(), player.getBasePlayer());
         Bukkit.getPluginManager().callEvent(breakEvt);
         if (breakEvt.isCancelled()) return;
+        block.getBlock().setType(block.getBrokenBlock());
         DurableBlocksAPI.getManager().unregisterBlock(block.getBlock().getLocation());
         blockExpiry.remove(block);
         blockNextPossible.remove(block);
         miningBlocks.remove(player.getBasePlayer().getUniqueId());
         final Material blockType = block.getBlock().getType();
-        // TODO: Add drops
-        // block.getBlock().getWorld().dropItem(block.getBlock().getLocation(), new ItemStack(block.get, 1));
+        if (block.droppedItems() != null) {
+            for (ItemStack drop : block.droppedItems()) {
+                block.getBlock().getWorld().dropItemNaturally(block.getLocation(), drop);
+            }
+        }
         player.getBasePlayer().playSound(block.getBlock().getLocation(), block.getBreakSound(), (float) 1.0, (float) 0.8);
         player.getBasePlayer().playEffect(block.getBlock().getLocation(), block.getBreakEffect(), blockType);
-        block.getBlock().setType(block.getBrokenBlock());
         block.setStage(-1);
         DurableBlocksAPI.getNMS().clearBreakingAnimation(block);
         if (block.getBrokenBlock().isBlock() && block.getBrokenBlock().isSolid()) {

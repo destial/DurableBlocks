@@ -16,13 +16,13 @@ final class EnumList {
         Plugin plugin = (Plugin) DurableBlocksAPI.get();
         File sounds = new File(plugin.getDataFolder(), "sounds.txt");
         if (!sounds.createNewFile()) {
-            FileWriter write = new FileWriter("sounds.txt");
+            FileWriter write = new FileWriter(sounds.getPath());
             for (Sound sound : Sound.values()) {
                 write.append(sound.name()).append("\n");
             }
             write.close();
         } else {
-            FileWriter write = new FileWriter("sounds.txt");
+            FileWriter write = new FileWriter(sounds.getPath());
             StringBuilder builder = new StringBuilder();
             for (Sound sound : Sound.values()) {
                 builder.append(sound.name()).append("\n");
@@ -35,15 +35,14 @@ final class EnumList {
     public void saveMaterialList() throws IOException {
         Plugin plugin = (Plugin) DurableBlocksAPI.get();
         File materials = new File(plugin.getDataFolder(), "materials.txt");
-
         if (!materials.createNewFile()) {
-            FileWriter write = new FileWriter("materials.txt");
+            FileWriter write = new FileWriter(materials.getPath());
             for (Material material : Material.values()) {
                 write.append(material.name()).append("\n");
             }
             write.close();
         } else {
-            FileWriter write = new FileWriter("materials.txt");
+            FileWriter write = new FileWriter(materials.getPath());
             StringBuilder builder = new StringBuilder();
             for (Material material : Material.values()) {
                 builder.append(material.name()).append("\n");
@@ -57,13 +56,13 @@ final class EnumList {
         Plugin plugin = (Plugin) DurableBlocksAPI.get();
         File effects = new File(plugin.getDataFolder(), "effects.txt");
         if (!effects.createNewFile()) {
-            FileWriter write = new FileWriter("effects.txt");
+            FileWriter write = new FileWriter(effects.getPath());
             for (Effect effect : Effect.values()) {
                 write.append(effect.name()).append("\n");
             }
             write.close();
         } else {
-            FileWriter write = new FileWriter("effects.txt");
+            FileWriter write = new FileWriter(effects.getPath());
             StringBuilder builder = new StringBuilder();
             for (Effect effect : Effect.values()) {
                 builder.append(effect.name()).append("\n");

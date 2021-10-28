@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -35,6 +36,18 @@ public class DurableConfig implements Map<String, Object> {
             ((Plugin) DurableBlocksAPI.get()).getLogger().warning("Unable to find sound of " + name + "! Please refer to the sounds.txt file for reference");
         }
         return null;
+    }
+
+    public List<ItemStack> getStacks(Material material) {
+        Map<String, Object> mapping = getMapping(material);
+        if (mapping == null) return null;
+        List<Map<String, Object>> itemDrops = (List<Map<String, Object>>) mapping.get("item-drops");
+        List<ItemStack> stacks = new ArrayList<>();
+        for (Map<String, Object> items : itemDrops) {
+            for (Object oitemStackMapping : items.values())
+            stacks.add((ItemStack) oitemStackMapping);
+        }
+        return stacks;
     }
 
     public Map<String, Object> getMapping(Material material) {

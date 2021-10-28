@@ -4,6 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
 
@@ -13,7 +14,8 @@ public class PlayerListener implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         DurableBlocksAPI.getManager().registerPlayer(e.getPlayer());
         if (DurableBlocksAPI.getConfig().getBool("always-fatigue")) {
-            e.getPlayer().addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(9999 * 20, 255));
+            PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 37523, 250, true, false);
+            e.getPlayer().addPotionEffect(effect);
         }
     }
 

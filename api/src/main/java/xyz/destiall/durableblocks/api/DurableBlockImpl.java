@@ -26,8 +26,7 @@ class DurableBlockImpl implements DurableBlock {
         breakSound = Sound.valueOf((String) mapping.get("block-break-sound"));
         effect = Effect.valueOf((String) mapping.get("block-break-effect"));
         convert = Material.valueOf((String) mapping.get("block-break-type"));
-        // TODO: Add drops
-        drops = null;
+        drops = DurableBlocksAPI.getConfig().getStacks(block.getType()).toArray(new ItemStack[0]);
     }
     @Override
     public Block getBlock() {
