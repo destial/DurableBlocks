@@ -24,8 +24,8 @@ import java.util.UUID;
 public class BlockListener implements Listener {
     private final DurableBlocksPlugin plugin;
 
-    private final HashMap<UUID, HashMap<DurableBlock, Long>> blockExpiry;
-    private final HashMap<UUID, HashMap<DurableBlock, Long>> blockNextPossible;
+    private final HashMap<DurableBlock, Long> blockExpiry;
+    private final HashMap<DurableBlock, Long> blockNextPossible;
     private final HashMap<UUID, DurableBlock> miningBlocks;
 
     public BlockListener(DurableBlocksPlugin plugin) {
@@ -34,94 +34,76 @@ public class BlockListener implements Listener {
         miningBlocks = new HashMap<>();
         blockNextPossible = new HashMap<>();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
-            for (Map.Entry<UUID, HashMap<DurableBlock, Long>> entry : blockExpiry.entrySet()) {
-                HashSet<DurableBlock> clearingBlocks = new HashSet<>();
-                ConnectedPlayer player = DurableBlocksAPI.getManager().getPlayer(entry.getKey());
-                if (player == null) continue;
-                for (Map.Entry<DurableBlock, Long> value : entry.getValue().entrySet()) {
-                    if (value.getValue() <= System.currentTimeMillis()) {
-                        player.sendBlockBreakingAnimation(value.getKey().getBlock(), -1);
-                        clearingBlocks.add(value.getKey());
-                    } else {
-                        player.sendBlockBreakingAnimation(value.getKey().getBlock(), value.getKey().getStage());
-                    }
+            HashSet<Object> clearing = new HashSet<>();
+            for (Map.Entry<DurableBlock, Long> entry : blockExpiry.entrySet()) {
+                if (entry.getValue() <= System.currentTimeMillis()) {
+                    entry.getKey().setStage(-1);
+                    DurableBlocksAPI.getNMS().clearBreakingAnimation(entry.getKey());
+                    DurableBlocksAPI.getManager().unregisterBlock(entry.getKey().getBlock().getLocation());
+                    clearing.add(entry.getKey());
+                } else {
+                    DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getKey());
                 }
-                for (DurableBlock clearing : clearingBlocks) {
-                    entry.getValue().remove(clearing);
-                    DurableBlocksAPI.getManager().unregisterBlock(clearing.getBlock().getLocation());
-                    player.sendBlockBreakingAnimation(clearing.getBlock(), -1);
-                }
-                clearingBlocks.clear();
             }
-            HashSet<DurableBlock> clearingBlocks = new HashSet<>();
+            for (Object clear : clearing) {
+                blockExpiry.remove(clear);
+            }
+            clearing.clear();
+
             for (Map.Entry<UUID, DurableBlock> entry : miningBlocks.entrySet()) {
                 ConnectedPlayer player = DurableBlocksAPI.getManager().getPlayer(entry.getKey());
-                if (player == null) continue;
+                if (player == null) {
+                    clearing.add(entry.getKey());
+                    continue;
+                }
                 if (!DurableBlocksAPI.getConfig().getBool("always-fatigue")) player.addFatigue();
-
-                HashMap<DurableBlock, Long> blocks = blockNextPossible.get(entry.getKey());
-                if (blocks == null) continue;
-                Map.Entry<DurableBlock, Long> en = blocks.entrySet().stream().filter(e -> e.getKey() == entry.getValue()).findFirst().orElse(null);
-                if (en == null) continue;
-                Long time = en.getValue();
+                Long time = blockNextPossible.get(entry.getValue());
                 if (time <= System.currentTimeMillis()) {
                     int prev = entry.getValue().getStage();
                     if (prev == 9) {
+                        entry.getValue().setStage(-1);
                         breakBlock(entry.getValue(), player);
-                        clearingBlocks.add(entry.getValue());
+                        clearing.add(entry.getKey());
                         continue;
                     }
-                    entry.getValue().setStage(prev + 1);
-                    player.sendBlockBreakingAnimation(entry.getValue().getBlock(), entry.getValue().getStage());
-                    blocks.put(entry.getValue(), System.currentTimeMillis() + entry.getValue().timePerStage());
+                    entry.getValue().nextStage();
+                    DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
+                    blockNextPossible.put(entry.getValue(), System.currentTimeMillis() + entry.getValue().timePerStage());
+                } else {
+                    DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
                 }
             }
-            miningBlocks.entrySet().removeIf((en) -> clearingBlocks.contains(en.getValue()));
-            clearingBlocks.clear();
+            for (Object clear : clearing) {
+                miningBlocks.remove(clear);
+            }
+            clearing.clear();
         }, 0L, 1L);
     }
 
     @EventHandler
     public void onStartDigging(PlayerStartDiggingEvent e) {
-        System.out.println("Start digging");
         final Player player = e.getPlayer();
         if (player == null || !player.isOnline() || player.getGameMode().equals(GameMode.CREATIVE)) return;
         final Location location = e.getBlock().getLocation();
         if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
         final DurableBlock durableBlock = DurableBlocksAPI.getManager().getBlock(location);
         miningBlocks.put(player.getUniqueId(), durableBlock);
-        HashMap<DurableBlock, Long> blocks = blockNextPossible.get(player.getUniqueId());
-        if (blocks == null) {
-            blocks = new HashMap<>();
-        }
-        blocks.put(durableBlock, System.currentTimeMillis() + durableBlock.timePerStage());
-        blockNextPossible.put(player.getUniqueId(), blocks);
+        blockNextPossible.put(durableBlock, System.currentTimeMillis() + durableBlock.timePerStage());
         e.setCancelled(true);
-        HashMap<DurableBlock, Long> expiries = blockExpiry.get(player.getUniqueId());
-        if (expiries != null) {
-            expiries.remove(durableBlock);
-        }
+        blockExpiry.remove(durableBlock);
     }
 
     @EventHandler
     public void onStopDigging(PlayerStopDiggingEvent e) {
-        System.out.println("Stop digging");
         if (miningBlocks.remove(e.getPlayer().getUniqueId()) != null) {
             DurableBlock durableBlock = DurableBlocksAPI.getManager().getBlock(e.getBlock().getLocation());
-            HashMap<DurableBlock, Long> expiries = blockExpiry.computeIfAbsent(e.getPlayer().getUniqueId(), k -> new HashMap<>());
-            if (durableBlock.getStage() == 9) {
-                expiries.remove(durableBlock);
-                return;
-            }
-            expiries.put(durableBlock, System.currentTimeMillis() + durableBlock.getExpiryLength());
+            blockExpiry.put(durableBlock, System.currentTimeMillis() + durableBlock.getExpiryLength());
         }
     }
 
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         miningBlocks.remove(e.getPlayer().getUniqueId());
-        blockNextPossible.remove(e.getPlayer().getUniqueId());
-        blockExpiry.remove(e.getPlayer().getUniqueId());
     }
 
     private void breakBlock(final DurableBlock block, final ConnectedPlayer player) {
@@ -130,10 +112,8 @@ public class BlockListener implements Listener {
         Bukkit.getPluginManager().callEvent(breakEvt);
         if (breakEvt.isCancelled()) return;
         DurableBlocksAPI.getManager().unregisterBlock(block.getBlock().getLocation());
-        HashMap<DurableBlock, Long> expiries = blockExpiry.get(player.getBasePlayer().getUniqueId());
-        if (expiries != null) {
-            expiries.remove(block);
-        }
+        blockExpiry.remove(block);
+        blockNextPossible.remove(block);
         miningBlocks.remove(player.getBasePlayer().getUniqueId());
         final Material blockType = block.getBlock().getType();
         // TODO: Add drops
@@ -141,7 +121,8 @@ public class BlockListener implements Listener {
         player.getBasePlayer().playSound(block.getBlock().getLocation(), block.getBreakSound(), (float) 1.0, (float) 0.8);
         player.getBasePlayer().playEffect(block.getBlock().getLocation(), block.getBreakEffect(), blockType);
         block.getBlock().setType(block.getBrokenBlock());
-        player.sendBlockBreakingAnimation(block.getBlock(), -1);
+        block.setStage(-1);
+        DurableBlocksAPI.getNMS().clearBreakingAnimation(block);
         if (block.getBrokenBlock().isBlock() && block.getBrokenBlock().isSolid()) {
             onStartDigging(new PlayerStartDiggingEvent(player.getBasePlayer(), block.getBlock()));
         }

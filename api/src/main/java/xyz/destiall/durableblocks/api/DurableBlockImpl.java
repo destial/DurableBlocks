@@ -1,8 +1,6 @@
 package xyz.destiall.durableblocks.api;
 
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
@@ -17,7 +15,9 @@ class DurableBlockImpl implements DurableBlock {
     private final Effect effect;
     private final Material convert;
     private final ItemStack[] drops;
+    private final int id;
     public DurableBlockImpl(Block block) {
+        id = (int) (Math.random() * 500);
         this.block = block;
         stage = -1;
         Map<String, Object> mapping = DurableBlocksAPI.getConfig().getMapping(block.getType());
@@ -90,5 +90,35 @@ class DurableBlockImpl implements DurableBlock {
     @Override
     public ItemStack[] droppedItems() {
         return drops;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public Location getLocation() {
+        return block.getLocation();
+    }
+
+    @Override
+    public double getX() {
+        return block.getX();
+    }
+
+    @Override
+    public double getY() {
+        return block.getY();
+    }
+
+    @Override
+    public double getZ() {
+        return block.getZ();
+    }
+
+    @Override
+    public World getWorld() {
+        return block.getWorld();
     }
 }

@@ -1,5 +1,6 @@
 package xyz.destiall.durableblocks.nms.protocollib;
 
+import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -12,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
+import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
 import xyz.destiall.durableblocks.api.NMS;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
@@ -49,5 +51,25 @@ public class NMSImpl implements NMS {
     @Override
     public ConnectedPlayer registerPlayer(Player player) {
         return new ConnectedPlayerImpl(player);
+    }
+
+    @Override
+    public void sendBreakingAnimation(Player player, DurableBlock block) {
+        WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
+        BlockPosition bp = new BlockPosition((int)block.getX(), (int)block.getY(), (int)block.getZ());
+        packet.setEntityID(block.getId());
+        packet.setLocation(bp);
+        packet.setDestroyStage(block.getStage());
+        ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle(), block.getLocation(), 60);
+    }
+
+    @Override
+    public void clearBreakingAnimation(DurableBlock block) {
+        WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
+        BlockPosition bp = new BlockPosition(0, 0, 0);
+        packet.setEntityID(block.getId());
+        packet.setLocation(bp);
+        packet.setDestroyStage(-1);
+        ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle());
     }
 }

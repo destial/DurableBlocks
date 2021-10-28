@@ -1,8 +1,6 @@
 package xyz.destiall.durableblocks.api;
 
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,4 +17,10 @@ public interface DurableBlock {
     Effect getBreakEffect();
     Material getBrokenBlock();
     ItemStack[] droppedItems();
+    int getId();
+    Location getLocation();
+    double getX();
+    double getY();
+    double getZ();
+    World getWorld();
 }
