@@ -1,8 +1,12 @@
 package xyz.destiall.durableblocks.nms.protocollib;
 
+import com.comphenix.packetwrapper.WrapperPlayClientArmAnimation;
+import com.comphenix.packetwrapper.WrapperPlayServerAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
 import com.comphenix.packetwrapper.WrapperPlayServerBoss;
+import com.comphenix.packetwrapper.WrapperPlayServerEntityEffect;
+import com.comphenix.packetwrapper.WrapperPlayServerRemoveEntityEffect;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
@@ -12,7 +16,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurabilityBar;
@@ -78,14 +81,34 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
-    public void addFatigue() {
-        PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 25, 254, true, false);
-        player.addPotionEffect(effect);
+    public void addFatigue(int duration, int amplifier) {
+        WrapperPlayServerEntityEffect effect = new WrapperPlayServerEntityEffect();
+        effect.setEffectID((byte) 0x04);
+        effect.setDuration(duration);
+        effect.setAmplifier((byte) amplifier);
+        effect.setHideParticles(true);
+        effect.setEntityID(player.getEntityId());
+        effect.sendPacket(player);
     }
 
     @Override
     public void removeFatigue() {
-        player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        WrapperPlayServerRemoveEntityEffect effect = new WrapperPlayServerRemoveEntityEffect();
+        effect.setEffect(PotionEffectType.SLOW_DIGGING);
+        effect.setEntityID(player.getEntityId());
+        effect.sendPacket(player);
+    }
+
+    @Override
+    public void sendArmSwing() {
+        WrapperPlayServerAnimation anim = new WrapperPlayServerAnimation();
+        anim.setEntityID(player.getEntityId());
+        anim.setAnimation(0);
+        anim.sendPacket(player);
+        WrapperPlayClientArmAnimation packet = new WrapperPlayClientArmAnimation();
+        //packet.setAnimation(0);
+        //packet.setEntityID(player.getEntityId());
+        packet.receivePacket(player);
     }
 
     @Override

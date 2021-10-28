@@ -6,8 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
 import xyz.destiall.durableblocks.api.Manager;
 import xyz.destiall.durableblocks.api.NMS;
-import xyz.destiall.durableblocks.listeners.BlockListener;
-import xyz.destiall.durableblocks.listeners.PlayerListener;
 
 import java.io.IOException;
 
@@ -44,7 +42,7 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
             e.printStackTrace();
         }
         Bukkit.getPluginManager().registerEvents(new BlockListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
     }
 
     @Override

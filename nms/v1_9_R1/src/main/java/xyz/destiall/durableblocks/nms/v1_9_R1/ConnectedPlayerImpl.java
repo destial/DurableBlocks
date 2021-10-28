@@ -5,11 +5,15 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.IChatBaseComponent;
+import net.minecraft.server.v1_9_R1.MobEffect;
+import net.minecraft.server.v1_9_R1.MobEffectList;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_9_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_9_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_9_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityEffect;
+import net.minecraft.server.v1_9_R1.PacketPlayOutRemoveEntityEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -97,13 +101,20 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
-    public void addFatigue() {
-        player.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(25, 255));
+    public void addFatigue(int duration, int amplifier) {
+        PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()), duration, amplifier, true, true));
+        sendPacket(entityEffect);
     }
 
     @Override
     public void removeFatigue() {
-        player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        PacketPlayOutRemoveEntityEffect entityEffect = new PacketPlayOutRemoveEntityEffect(player.getEntityId(), MobEffectList.fromId(PotionEffectType.SLOW_DIGGING.getId()));
+        sendPacket(entityEffect);
+    }
+
+    @Override
+    public void sendArmSwing() {
+
     }
 
     @Override

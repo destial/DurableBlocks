@@ -12,7 +12,8 @@ public interface ConnectedPlayer {
     void updateBlockNotify(Location location);
     void sendActionBar(String message);
     void sendDurabilityBar(DurabilityBar bar);
-    void addFatigue();
+    void addFatigue(int duration, int amplifier);
     void removeFatigue();
+    void sendArmSwing();
     Player getBasePlayer();
 }

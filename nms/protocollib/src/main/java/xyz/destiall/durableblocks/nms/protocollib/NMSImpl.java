@@ -33,11 +33,12 @@ public class NMSImpl implements NMS {
                     if (packet.getPlayerDigTypes().read(0).equals(EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)) {
                         PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
-                        event.setCancelled(e.isCancelled());
+                        event.setCancelled(true);
+                        // event.setCancelled(e.isCancelled());
                     } else {
                         PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
-                        event.setCancelled(e.isCancelled());
+                        // event.setCancelled(e.isCancelled());
                     }
                 }
             }

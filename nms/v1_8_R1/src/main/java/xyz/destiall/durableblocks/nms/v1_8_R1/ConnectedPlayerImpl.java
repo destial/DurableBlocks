@@ -6,12 +6,15 @@ import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_8_R1.BlockPosition;
 import net.minecraft.server.v1_8_R1.ChatSerializer;
 import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
+import net.minecraft.server.v1_8_R1.MobEffect;
 import net.minecraft.server.v1_8_R1.NetworkManager;
 import net.minecraft.server.v1_8_R1.Packet;
 import net.minecraft.server.v1_8_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_8_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_8_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_8_R1.PacketPlayOutEntityEffect;
+import net.minecraft.server.v1_8_R1.PacketPlayOutRemoveEntityEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,7 +23,6 @@ import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurabilityBar;
@@ -100,14 +102,20 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
-    public void addFatigue() {
-        PotionEffect effect = new PotionEffect(PotionEffectType.SLOW_DIGGING, 25, 254, true, false);
-        player.addPotionEffect(effect);
+    public void addFatigue(int duration, int amplifier) {
+        PacketPlayOutEntityEffect entityEffect = new PacketPlayOutEntityEffect(player.getEntityId(), new MobEffect(PotionEffectType.SLOW_DIGGING.getId(), duration, amplifier, true, true));
+        sendPacket(entityEffect);
     }
 
     @Override
     public void removeFatigue() {
-        player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        PacketPlayOutRemoveEntityEffect entityEffect = new PacketPlayOutRemoveEntityEffect(player.getEntityId(), new MobEffect(PotionEffectType.SLOW_DIGGING.getId(), 1, 1, true, true));
+        sendPacket(entityEffect);
+    }
+
+    @Override
+    public void sendArmSwing() {
+
     }
 
     @Override

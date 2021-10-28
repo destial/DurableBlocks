@@ -1,4 +1,4 @@
-package xyz.destiall.durableblocks.listeners;
+package xyz.destiall.durableblocks;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -15,20 +15,19 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.durableblocks.DurableBlocksPlugin;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.DurableBlocksAPI;
+import xyz.destiall.durableblocks.api.ToolCheck;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
-import xyz.destiall.durableblocks.utils.ToolCheck;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
-public class BlockListener implements Listener {
+final class BlockListener implements Listener {
     private final DurableBlocksPlugin plugin;
 
     private final HashMap<DurableBlock, Long> blockExpiry;
@@ -63,9 +62,9 @@ public class BlockListener implements Listener {
                     clearing.add(entry.getKey());
                     continue;
                 }
-                if (!DurableBlocksAPI.getConfig().getBool("always-fatigue")) player.addFatigue();
                 Long time = blockNextPossible.get(entry.getValue());
                 if (time == null) continue;
+                // player.sendArmSwing();
                 if (time <= System.currentTimeMillis()) {
                     int prev = entry.getValue().getStage();
                     if (prev == 9) {
@@ -79,16 +78,17 @@ public class BlockListener implements Listener {
                     ItemStack inHand = player.getBasePlayer().getItemInHand();
                     long multiplier = 1;
                     if (inHand != null) {
+                        multiplier = ToolCheck.getToolSpeedAgainstBlock(entry.getValue().getBlock().getType(), inHand.getType());
                         if (!entry.getValue().getBlock().getDrops(inHand).isEmpty()) {
-                            if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
-                                multiplier = inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
-                            }
                             if (ToolCheck.isPickaxe(inHand.getType())) {
                                 multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
                             } else if (ToolCheck.isAxe(inHand.getType())) {
                                 multiplier *= ToolCheck.getAxeLevel(inHand.getType());
                             } else if (ToolCheck.isShovel(inHand.getType())) {
                                 multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                            }
+                            if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                                multiplier *= inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
                             }
                         }
                     }
@@ -115,16 +115,17 @@ public class BlockListener implements Listener {
         ItemStack inHand = e.getPlayer().getItemInHand();
         long multiplier = 1;
         if (inHand != null) {
+            multiplier = ToolCheck.getToolSpeedAgainstBlock(durableBlock.getBlock().getType(), inHand.getType());
             if (!durableBlock.getBlock().getDrops(inHand).isEmpty()) {
-                if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
-                    multiplier = inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
-                }
                 if (ToolCheck.isPickaxe(inHand.getType())) {
                     multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
                 } else if (ToolCheck.isAxe(inHand.getType())) {
                     multiplier *= ToolCheck.getAxeLevel(inHand.getType());
                 } else if (ToolCheck.isShovel(inHand.getType())) {
                     multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                }
+                if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                    multiplier *= inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
                 }
             }
         }
