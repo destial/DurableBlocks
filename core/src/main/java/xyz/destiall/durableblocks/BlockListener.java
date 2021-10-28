@@ -117,12 +117,14 @@ final class BlockListener implements Listener {
         if (inHand != null) {
             multiplier = ToolCheck.getToolSpeedAgainstBlock(durableBlock.getBlock().getType(), inHand.getType());
             if (!durableBlock.getBlock().getDrops(inHand).isEmpty()) {
-                if (ToolCheck.isPickaxe(inHand.getType())) {
-                    multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
-                } else if (ToolCheck.isAxe(inHand.getType())) {
-                    multiplier *= ToolCheck.getAxeLevel(inHand.getType());
-                } else if (ToolCheck.isShovel(inHand.getType())) {
-                    multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                if (multiplier != 1) {
+                    if (ToolCheck.isPickaxe(inHand.getType())) {
+                        multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
+                    } else if (ToolCheck.isAxe(inHand.getType())) {
+                        multiplier *= ToolCheck.getAxeLevel(inHand.getType());
+                    } else if (ToolCheck.isShovel(inHand.getType())) {
+                        multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                    }
                 }
                 if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
                     multiplier *= inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
