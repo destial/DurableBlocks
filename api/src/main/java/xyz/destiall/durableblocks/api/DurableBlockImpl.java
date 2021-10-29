@@ -20,16 +20,18 @@ class DurableBlockImpl implements DurableBlock {
     private final Material convert;
     private final ItemStack[] drops;
     private final int id;
+    private final boolean need;
     public DurableBlockImpl(Block block) {
         id = (int) (Math.random() * 500);
         this.block = block;
         stage = -1;
         Map<String, Object> mapping = DurableBlocksAPI.getConfig().getMapping(block.getType());
-        interval = (int) mapping.get("milliseconds-per-stage");
-        expiry = (int) mapping.get("expiry-length-after-stop-mining");
-        breakSound = Sound.valueOf((String) mapping.get("block-break-sound"));
-        effect = Effect.valueOf((String) mapping.get("block-break-effect"));
-        convert = Material.valueOf((String) mapping.get("block-break-type"));
+        interval = (int) mapping.getOrDefault("milliseconds-per-stage", 500);
+        expiry = (int) mapping.getOrDefault("expiry-length-after-stop-mining", 5000);
+        need = (boolean) mapping.getOrDefault("need-tool-for-drops", true);
+        breakSound = DurableBlocksAPI.getConfig().getSound(block.getType());
+        effect = DurableBlocksAPI.getConfig().getEffect(block.getType());
+        convert = DurableBlocksAPI.getConfig().getConvert(block.getType());
         drops = DurableBlocksAPI.getConfig().getStacks(block.getType()).toArray(new ItemStack[0]);
     }
     @Override
@@ -48,11 +50,11 @@ class DurableBlockImpl implements DurableBlock {
     }
 
     @Override
-    public int nextStage() {
+    public void nextStage() {
         if (stage > 9) {
             stage = -1;
         }
-        return stage++;
+        stage++;
     }
 
     @Override
@@ -123,5 +125,10 @@ class DurableBlockImpl implements DurableBlock {
     @Override
     public World getWorld() {
         return block.getWorld();
+    }
+
+    @Override
+    public boolean needTool() {
+        return need;
     }
 }

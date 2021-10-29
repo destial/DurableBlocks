@@ -19,8 +19,8 @@ final class PlayerListener implements Listener {
         ConnectedPlayer cPlayer = DurableBlocksAPI.getManager().registerPlayer(e.getPlayer());
         if (DurableBlocksAPI.getConfig().getBool("always-fatigue")) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                cPlayer.addFatigue(Integer.MAX_VALUE, 254);
-            }, 10L);
+                cPlayer.addFatigue(9999 * 20, 254);
+            }, 20L);
         }
     }
 

@@ -68,11 +68,12 @@ public interface DurableBlocksAPI {
                 config = new YamlConfiguration();
                 List<Map<String, Map<String, Object>>> materialMappings = new ArrayList<>();
                 for (Material material : Material.values()) {
-                    if (!material.isBlock() && !material.isSolid()) continue;
+                    if (!material.isSolid()) continue;
                     HashMap<String, Map<String, Object>> path = new HashMap<>();
                     HashMap<String, Object> values = new HashMap<>();
                     values.put("milliseconds-per-stage", material.isBurnable() ? 200 : material.hasGravity() ? 200 : material.isTransparent() ? 100 : 500);
                     values.put("expiry-length-after-stop-mining", 5000);
+                    values.put("need-tool-for-drops", material.isBlock());
                     values.put("block-break-sound", Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get().name());
                     values.put("block-break-effect", Effect.STEP_SOUND.name());
                     values.put("block-break-type", Material.AIR.name());

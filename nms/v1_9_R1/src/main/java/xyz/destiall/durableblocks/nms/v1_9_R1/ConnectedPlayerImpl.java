@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_9_R1.BlockPosition;
-import net.minecraft.server.v1_9_R1.IChatBaseComponent;
+import net.minecraft.server.v1_9_R1.ChatComponentText;
 import net.minecraft.server.v1_9_R1.MobEffect;
 import net.minecraft.server.v1_9_R1.MobEffectList;
 import net.minecraft.server.v1_9_R1.Packet;
@@ -15,6 +15,7 @@ import net.minecraft.server.v1_9_R1.PacketPlayOutChat;
 import net.minecraft.server.v1_9_R1.PacketPlayOutEntityEffect;
 import net.minecraft.server.v1_9_R1.PacketPlayOutRemoveEntityEffect;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -24,12 +25,12 @@ import org.bukkit.craftbukkit.v1_9_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
-import xyz.destiall.durableblocks.api.DurabilityBar;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
+    private boolean digging;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
@@ -47,15 +48,18 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                             synchronized (channel) {
                                 Bukkit.getPluginManager().callEvent(e);
                                 cancelled = e.isCancelled();
+                                setDigging(true);
                             }
                         } else if (dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.STOP_DESTROY_BLOCK) || dig.c().equals(PacketPlayInBlockDig.EnumPlayerDigType.ABORT_DESTROY_BLOCK)) {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
                             synchronized (channel) {
                                 Bukkit.getPluginManager().callEvent(e);
                                 cancelled = e.isCancelled();
+                                setDigging(false);
                             }
                         }
-                        if (cancelled) return;
+                        if (!player.getGameMode().equals(GameMode.CREATIVE))
+                            if (cancelled) return;
                     }
                     super.channelRead(ctx, msg);
                 }
@@ -85,19 +89,10 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
-    public void updateBlockNotify(Location location) {
-        ((CraftWorld) player.getWorld()).getHandle().a(new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()), true);
-    }
-
-    @Override
     public void sendActionBar(String message) {
-        PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + message + "\"}"));
-        sendPacket(packet);
-    }
-
-    @Override
-    public void sendDurabilityBar(DurabilityBar bar) {
-
+        ChatComponentText text = new ChatComponentText(message);
+        PacketPlayOutChat packet = new PacketPlayOutChat(text, (byte) 2);
+        sendPacket(packet);;
     }
 
     @Override
@@ -115,6 +110,16 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public void sendArmSwing() {
 
+    }
+
+    @Override
+    public boolean isDigging() {
+        return digging;
+    }
+
+    @Override
+    public void setDigging(boolean digging) {
+        this.digging = digging;
     }
 
     @Override

@@ -4,11 +4,9 @@ import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,12 +22,10 @@ public class DurableConfig implements Map<String, Object> {
         this.config = config;
     }
 
-    public DurableConfig(File file) {
-        config = YamlConfiguration.loadConfiguration(file);
-    }
-
-    public Sound getSound(String path) {
-        String name = getString(path);
+    public Sound getSound(Material material) {
+        Map<String, Object> mapping = getMapping(material);
+        if (mapping == null) return null;
+        String name = (String) mapping.get("block-break-sound");
         try {
             return Sound.valueOf(name.toUpperCase());
         } catch (Exception e) {
@@ -57,8 +53,10 @@ public class DurableConfig implements Map<String, Object> {
         return (Map<String, Object>) materialMap.get(material.name());
     }
 
-    public Material getMaterial(String path) {
-        String name = getString(path);
+    public Material getConvert(Material material) {
+        Map<String, Object> mapping = getMapping(material);
+        if (mapping == null) return null;
+        String name = (String) mapping.get("block-break-type");
         try {
             return Material.valueOf(name.toUpperCase());
         } catch (Exception e) {
@@ -67,8 +65,10 @@ public class DurableConfig implements Map<String, Object> {
         return null;
     }
 
-    public Effect getEffect(String path) {
-        String name = getString(path);
+    public Effect getEffect(Material material) {
+        Map<String, Object> mapping = getMapping(material);
+        if (mapping == null) return null;
+        String name = (String) mapping.get("block-break-effect");
         try {
             return Effect.valueOf(name.toUpperCase());
         } catch (Exception e) {

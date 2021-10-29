@@ -1,31 +1,29 @@
 package xyz.destiall.durableblocks.nms.protocollib;
 
-import com.comphenix.packetwrapper.WrapperPlayClientArmAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockBreakAnimation;
 import com.comphenix.packetwrapper.WrapperPlayServerBlockChange;
-import com.comphenix.packetwrapper.WrapperPlayServerBoss;
-import com.comphenix.packetwrapper.WrapperPlayServerEntityEffect;
-import com.comphenix.packetwrapper.WrapperPlayServerRemoveEntityEffect;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
-import xyz.destiall.durableblocks.api.DurabilityBar;
+import xyz.destiall.durableblocks.api.NMS;
 
 import java.lang.reflect.InvocationTargetException;
 
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final Player player;
-    public ConnectedPlayerImpl(Player player) {
+    private final ConnectedPlayer nmsPlayer;
+    private boolean digging;
+    public ConnectedPlayerImpl(NMS nms, Player player) {
         this.player = player;
+        this.nmsPlayer = nms.registerPlayer(player);
+        digging = false;
     }
 
     @Override
@@ -56,47 +54,18 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
-    public void updateBlockNotify(Location location) {
-
-    }
-
-    @Override
     public void sendActionBar(String message) {
-
-    }
-
-    @Override
-    public void sendDurabilityBar(DurabilityBar bar) {
-        WrapperPlayServerBoss packet = new WrapperPlayServerBoss();
-        packet.setAction(WrapperPlayServerBoss.Action.UPDATE_PCT);
-        packet.setUniqueId(bar.getUUID());
-        packet.setHealth(bar.getValue());
-        packet.setStyle(WrapperPlayServerBoss.BarStyle.PROGRESS);
-        packet.setTitle(WrappedChatComponent.fromText(bar.getMessage()));
-        try {
-            Class.forName("org.bukkit.boss.BarColor");
-            packet.setColor(org.bukkit.boss.BarColor.valueOf(bar.getColor().name()));
-        } catch (ClassNotFoundException ignored) {}
-        packet.sendPacket(player);
+        nmsPlayer.sendActionBar(message);
     }
 
     @Override
     public void addFatigue(int duration, int amplifier) {
-        WrapperPlayServerEntityEffect effect = new WrapperPlayServerEntityEffect();
-        effect.setEffectID((byte) 0x04);
-        effect.setDuration(duration);
-        effect.setAmplifier((byte) amplifier);
-        effect.setHideParticles(true);
-        effect.setEntityID(player.getEntityId());
-        effect.sendPacket(player);
+        nmsPlayer.addFatigue(duration, amplifier);
     }
 
     @Override
     public void removeFatigue() {
-        WrapperPlayServerRemoveEntityEffect effect = new WrapperPlayServerRemoveEntityEffect();
-        effect.setEffect(PotionEffectType.SLOW_DIGGING);
-        effect.setEntityID(player.getEntityId());
-        effect.sendPacket(player);
+        nmsPlayer.removeFatigue();
     }
 
     @Override
@@ -105,10 +74,16 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
         anim.setEntityID(player.getEntityId());
         anim.setAnimation(0);
         anim.sendPacket(player);
-        WrapperPlayClientArmAnimation packet = new WrapperPlayClientArmAnimation();
-        //packet.setAnimation(0);
-        //packet.setEntityID(player.getEntityId());
-        packet.receivePacket(player);
+    }
+
+    @Override
+    public boolean isDigging() {
+        return digging;
+    }
+
+    @Override
+    public void setDigging(boolean digging) {
+        this.digging = digging;
     }
 
     @Override

@@ -38,6 +38,7 @@ final class EnumList {
         if (!materials.createNewFile()) {
             FileWriter write = new FileWriter(materials.getPath());
             for (Material material : Material.values()) {
+                if (!material.isSolid()) continue;
                 write.append(material.name()).append("\n");
             }
             write.close();
@@ -45,6 +46,7 @@ final class EnumList {
             FileWriter write = new FileWriter(materials.getPath());
             StringBuilder builder = new StringBuilder();
             for (Material material : Material.values()) {
+                if (!material.isSolid()) continue;
                 builder.append(material.name()).append("\n");
             }
             write.write(builder.toString());

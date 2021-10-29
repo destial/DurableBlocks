@@ -9,6 +9,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -20,9 +21,15 @@ import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
 public class NMSImpl implements NMS {
-    private final NMS nms;
+    public NMS nms;
     public NMSImpl() {
-        nms = this;
+        try {
+            String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+            Class<?> clazz = Class.forName("xyz.destiall.durableblocks.nms." + version + ".NMSImpl");
+            nms = (NMS) clazz.newInstance();
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter((Plugin) DurableBlocksAPI.get(), PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -33,11 +40,14 @@ public class NMSImpl implements NMS {
                     if (packet.getPlayerDigTypes().read(0).equals(EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)) {
                         PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
-                        event.setCancelled(true);
+                        Player player = e.getPlayer();
+                        e.setCancelled(!player.getGameMode().equals(GameMode.CREATIVE));
+                        DurableBlocksAPI.getManager().getPlayer(event.getPlayer().getUniqueId()).setDigging(true);
                         // event.setCancelled(e.isCancelled());
                     } else {
                         PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
+                        DurableBlocksAPI.getManager().getPlayer(event.getPlayer().getUniqueId()).setDigging(false);
                         // event.setCancelled(e.isCancelled());
                     }
                 }
@@ -47,7 +57,7 @@ public class NMSImpl implements NMS {
 
     @Override
     public ConnectedPlayer registerPlayer(Player player) {
-        return new ConnectedPlayerImpl(player);
+        return new ConnectedPlayerImpl(nms, player);
     }
 
     @Override

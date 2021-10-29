@@ -6,6 +6,10 @@ import java.util.stream.Stream;
 
 public final class ToolCheck {
 
+    public static boolean isTool(Material material) {
+        return isAxe(material) || isShovel(material) || isPickaxe(material) || isHoe(material) || material.equals(Material.SHEARS);
+    }
+
     public static int getToolSpeedAgainstBlock(Material block, Material tool) {
         if (ToolCheck.isShovel(tool)) {
             if (Stream.of(
@@ -44,6 +48,10 @@ public final class ToolCheck {
 
     public static boolean isShovel(Material material) {
         return material.name().contains("_SPADE") || material.name().contains("_SHOVEL");
+    }
+
+    public static boolean isHoe(Material material) {
+        return material.name().contains("_HOE");
     }
 
     public static int getPickaxeLevel(Material material) {

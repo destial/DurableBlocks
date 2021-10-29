@@ -81,7 +81,7 @@
 
     <build>
         <directory>../target</directory>
-        <finalName>DurableBlocks</finalName>
+        <finalName>DurableBlocks-${project.version}</finalName>
         <resources>
             <resource>
                 <targetPath>.</targetPath>
@@ -89,7 +89,6 @@
                 <directory>${basedir}/../core/src/main/resources/</directory>
                 <includes>
                     <include>plugin.yml</include>
-                    <include>config.yml</include>
                 </includes>
             </resource>
         </resources>

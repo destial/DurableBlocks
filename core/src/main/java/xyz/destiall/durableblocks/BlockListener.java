@@ -1,6 +1,7 @@
 package xyz.destiall.durableblocks;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -72,30 +73,34 @@ final class BlockListener implements Listener {
                         breakBlock(entry.getValue(), player);
                         clearing.add(entry.getKey());
                         continue;
-                    }
-                    entry.getValue().nextStage();
-                    DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
-                    ItemStack inHand = player.getBasePlayer().getItemInHand();
-                    long multiplier = 1;
-                    if (inHand != null) {
-                        multiplier = ToolCheck.getToolSpeedAgainstBlock(entry.getValue().getBlock().getType(), inHand.getType());
-                        if (!entry.getValue().getBlock().getDrops(inHand).isEmpty()) {
-                            if (ToolCheck.isPickaxe(inHand.getType())) {
-                                multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
-                            } else if (ToolCheck.isAxe(inHand.getType())) {
-                                multiplier *= ToolCheck.getAxeLevel(inHand.getType());
-                            } else if (ToolCheck.isShovel(inHand.getType())) {
-                                multiplier *= ToolCheck.getShovelLevel(inHand.getType());
-                            }
-                            if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
-                                multiplier *= inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                    } else {
+                        entry.getValue().nextStage();
+                        DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
+                        ItemStack inHand = player.getBasePlayer().getItemInHand();
+                        long multiplier = 1;
+                        if (inHand != null) {
+                            if (!entry.getValue().getBlock().getDrops(inHand).isEmpty()) {
+                                multiplier = ToolCheck.getToolSpeedAgainstBlock(entry.getValue().getBlock().getType(), inHand.getType());
+                                if (multiplier != 1) {
+                                    if (ToolCheck.isPickaxe(inHand.getType())) {
+                                        multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
+                                    } else if (ToolCheck.isAxe(inHand.getType())) {
+                                        multiplier *= ToolCheck.getAxeLevel(inHand.getType());
+                                    } else if (ToolCheck.isShovel(inHand.getType())) {
+                                        multiplier *= ToolCheck.getShovelLevel(inHand.getType());
+                                    }
+                                    if (inHand.getEnchantments() != null && inHand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                                        multiplier *= inHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                                    }
+                                }
                             }
                         }
+                        blockNextPossible.put(entry.getValue(), System.currentTimeMillis() + (entry.getValue().timePerStage() * (1 / multiplier)));
                     }
-                    blockNextPossible.put(entry.getValue(), System.currentTimeMillis() + (entry.getValue().timePerStage() * (1 / multiplier)));
                 } else {
                     DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
                 }
+                player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&aProgress: " + getProgress(entry.getValue().getStage())));
             }
             for (Object clear : clearing) {
                 miningBlocks.remove(clear);
@@ -115,8 +120,8 @@ final class BlockListener implements Listener {
         ItemStack inHand = e.getPlayer().getItemInHand();
         long multiplier = 1;
         if (inHand != null) {
-            multiplier = ToolCheck.getToolSpeedAgainstBlock(durableBlock.getBlock().getType(), inHand.getType());
             if (!durableBlock.getBlock().getDrops(inHand).isEmpty()) {
+                multiplier = ToolCheck.getToolSpeedAgainstBlock(durableBlock.getBlock().getType(), inHand.getType());
                 if (multiplier != 1) {
                     if (ToolCheck.isPickaxe(inHand.getType())) {
                         multiplier *= ToolCheck.getPickaxeLevel(inHand.getType());
@@ -169,23 +174,64 @@ final class BlockListener implements Listener {
         final BlockBreakEvent breakEvt = new BlockBreakEvent(block.getBlock(), player.getBasePlayer());
         Bukkit.getPluginManager().callEvent(breakEvt);
         if (breakEvt.isCancelled()) return;
-        block.getBlock().setType(block.getBrokenBlock());
-        DurableBlocksAPI.getManager().unregisterBlock(block.getBlock().getLocation());
         blockExpiry.remove(block);
         blockNextPossible.remove(block);
         miningBlocks.remove(player.getBasePlayer().getUniqueId());
+        DurableBlocksAPI.getManager().unregisterBlock(block.getBlock().getLocation());
         final Material blockType = block.getBlock().getType();
+        boolean drop = true;
+        ItemStack inHand = player.getBasePlayer().getItemInHand();
         if (block.droppedItems() != null) {
-            for (ItemStack drop : block.droppedItems()) {
-                block.getBlock().getWorld().dropItemNaturally(block.getLocation(), drop);
+            if (inHand != null) {
+                long multiplier = ToolCheck.getToolSpeedAgainstBlock(blockType, inHand.getType());
+                if (multiplier == 1 && block.needTool()) {
+                    drop = false;
+                }
+                if (ToolCheck.isTool(inHand.getType())) {
+                    int unbreaking = inHand.getEnchantmentLevel(Enchantment.DURABILITY);
+                    if (unbreaking == 0) {
+                        inHand.setDurability((short) (inHand.getDurability() + 1));
+                    } else {
+                        double rand = unbreaking - (Math.random() * unbreaking);
+                        if (rand <= unbreaking / 2.f) {
+                            inHand.setDurability((short) (inHand.getDurability() + 1));
+                        }
+                    }
+                }
             }
         }
+        if (drop) {
+            if (inHand != null) {
+                int fortune = inHand.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS);
+                for (int i = 0; i <= fortune; ++i) {
+                    for (ItemStack d : block.droppedItems()) {
+                        block.getBlock().getWorld().dropItemNaturally(block.getLocation(), d);
+                    }
+                }
+            }
+        }
+        block.getBlock().setType(block.getBrokenBlock());
         player.getBasePlayer().playSound(block.getBlock().getLocation(), block.getBreakSound(), (float) 1.0, (float) 0.8);
         player.getBasePlayer().playEffect(block.getBlock().getLocation(), block.getBreakEffect(), blockType);
         block.setStage(-1);
         DurableBlocksAPI.getNMS().clearBreakingAnimation(block);
         if (block.getBrokenBlock().isBlock() && block.getBrokenBlock().isSolid()) {
-            onStartDigging(new PlayerStartDiggingEvent(player.getBasePlayer(), block.getBlock()));
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (player.isDigging())
+                    onStartDigging(new PlayerStartDiggingEvent(player.getBasePlayer(), block.getBlock()));
+            },1L);
         }
+    }
+
+    private String getProgress(int stage) {
+        String progress = "&a";
+        for (int i = 0; i < (stage + 1); ++i) {
+            progress += "||";
+        }
+        progress += "&c";
+        for (int i = 0; i < (10 - stage); ++i) {
+            progress += "||";
+        }
+        return progress;
     }
 }

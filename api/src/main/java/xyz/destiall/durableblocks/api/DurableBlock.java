@@ -12,7 +12,7 @@ public interface DurableBlock {
     Block getBlock();
     int getStage();
     void setStage(int stage);
-    int nextStage();
+    void nextStage();
     long timePerStage();
     void setTimePerStage(long time);
     long getExpiryLength();
@@ -27,4 +27,5 @@ public interface DurableBlock {
     double getY();
     double getZ();
     World getWorld();
+    boolean needTool();
 }
