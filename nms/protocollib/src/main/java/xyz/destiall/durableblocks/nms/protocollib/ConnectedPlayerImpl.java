@@ -22,7 +22,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     private boolean digging;
     public ConnectedPlayerImpl(NMS nms, Player player) {
         this.player = player;
-        this.nmsPlayer = nms.registerPlayer(player);
+        nmsPlayer = nms.registerPlayer(player);
         digging = false;
     }
 

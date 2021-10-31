@@ -2,11 +2,10 @@ package xyz.destiall.durableblocks.api.events;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class PlayerStopDiggingEvent extends Event implements Cancellable {
+public class PlayerStopDiggingEvent extends Event {
     private final Block block;
     private final Player player;
     public PlayerStopDiggingEvent(Player who, Block block) {
@@ -31,14 +30,5 @@ public class PlayerStopDiggingEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return list;
-    }
-
-    private boolean cancelled = false;
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    public void setCancelled(boolean b) {
-        cancelled = b;
     }
 }

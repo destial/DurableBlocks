@@ -224,14 +224,14 @@ final class BlockListener implements Listener {
     }
 
     private String getProgress(int stage) {
-        String progress = "&a";
+        StringBuilder progress = new StringBuilder("&a");
         for (int i = 0; i < (stage + 1); ++i) {
-            progress += "||";
+            progress.append("||");
         }
-        progress += "&c";
-        for (int i = 0; i < (10 - stage); ++i) {
-            progress += "||";
+        progress.append("&c");
+        for (int i = 0; i < (9 - stage); ++i) {
+            progress.append("||");
         }
-        return progress;
+        return progress.toString();
     }
 }

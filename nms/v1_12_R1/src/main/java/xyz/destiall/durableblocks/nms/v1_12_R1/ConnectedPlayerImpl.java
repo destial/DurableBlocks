@@ -55,7 +55,6 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                             PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(player, block);
                             synchronized (channel) {
                                 Bukkit.getPluginManager().callEvent(e);
-                                cancelled = e.isCancelled();
                                 setDigging(false);
                             }
                         }

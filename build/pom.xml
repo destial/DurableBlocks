@@ -67,7 +67,61 @@
         </dependency>
         <dependency>
             <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_10_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_11_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
             <artifactId>v1_12_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_13_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_13_R2</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_14_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_15_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_16_R1</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_16_R2</artifactId>
+            <version>0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>xyz.destiall.durableblocks</groupId>
+            <artifactId>v1_16_R3</artifactId>
             <version>0.1</version>
             <scope>compile</scope>
         </dependency>

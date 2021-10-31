@@ -21,7 +21,7 @@ import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
 public class NMSImpl implements NMS {
-    public NMS nms;
+    private NMS nms;
     public NMSImpl() {
         try {
             String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
@@ -43,12 +43,10 @@ public class NMSImpl implements NMS {
                         Player player = e.getPlayer();
                         e.setCancelled(!player.getGameMode().equals(GameMode.CREATIVE));
                         DurableBlocksAPI.getManager().getPlayer(event.getPlayer().getUniqueId()).setDigging(true);
-                        // event.setCancelled(e.isCancelled());
                     } else {
                         PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
                         DurableBlocksAPI.getManager().getPlayer(event.getPlayer().getUniqueId()).setDigging(false);
-                        // event.setCancelled(e.isCancelled());
                     }
                 }
             }
@@ -62,21 +60,29 @@ public class NMSImpl implements NMS {
 
     @Override
     public void sendBreakingAnimation(Player player, DurableBlock block) {
-        WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
-        BlockPosition bp = new BlockPosition((int)block.getX(), (int)block.getY(), (int)block.getZ());
-        packet.setEntityID(block.getId());
-        packet.setLocation(bp);
-        packet.setDestroyStage(block.getStage());
-        ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle(), block.getLocation(), 60);
+        try {
+            WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
+            BlockPosition bp = new BlockPosition((int) block.getX(), (int) block.getY(), (int) block.getZ());
+            packet.setEntityID(block.getId());
+            packet.setLocation(bp);
+            packet.setDestroyStage(block.getStage());
+            ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle(), block.getLocation(), 60);
+        } catch (Exception e) {
+            nms.sendBreakingAnimation(player, block);
+        }
     }
 
     @Override
     public void clearBreakingAnimation(DurableBlock block) {
-        WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
-        BlockPosition bp = new BlockPosition(0, 0, 0);
-        packet.setEntityID(block.getId());
-        packet.setLocation(bp);
-        packet.setDestroyStage(-1);
-        ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle());
+        try {
+            WrapperPlayServerBlockBreakAnimation packet = new WrapperPlayServerBlockBreakAnimation();
+            BlockPosition bp = new BlockPosition(0, 0, 0);
+            packet.setEntityID(block.getId());
+            packet.setLocation(bp);
+            packet.setDestroyStage(-1);
+            ProtocolLibrary.getProtocolManager().broadcastServerPacket(packet.getHandle());
+        } catch (Exception e) {
+            nms.clearBreakingAnimation(block);
+        }
     }
 }

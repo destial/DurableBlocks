@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Manager {
+public final class Manager {
     private final HashMap<UUID, ConnectedPlayer> players;
     private final HashMap<Location, DurableBlock> blocks;
     public Manager() {
@@ -28,8 +28,9 @@ public class Manager {
     public DurableBlock registerBlock(Block block) {
         DurableBlock db = blocks.get(block.getLocation());
         if (db != null) return db;
-        blocks.put(block.getLocation(), new DurableBlockImpl(block));
-        return blocks.get(block.getLocation());
+        db = new DurableBlockImpl(block);
+        blocks.put(block.getLocation(), db);
+        return db;
     }
 
     public void unregisterBlock(Location location) {
@@ -41,9 +42,6 @@ public class Manager {
     }
 
     public DurableBlock getBlock(Location location) {
-        if (blocks.get(location) == null) {
-            return registerBlock(location.getBlock());
-        }
-        return blocks.get(location);
+        return registerBlock(location.getBlock());
     }
 }
