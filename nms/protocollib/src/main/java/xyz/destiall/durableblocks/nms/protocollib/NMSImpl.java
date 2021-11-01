@@ -40,8 +40,7 @@ public class NMSImpl implements NMS {
                     if (packet.getPlayerDigTypes().read(0).equals(EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)) {
                         PlayerStartDiggingEvent e = new PlayerStartDiggingEvent(event.getPlayer(), location.getBlock());
                         Bukkit.getPluginManager().callEvent(e);
-                        Player player = e.getPlayer();
-                        e.setCancelled(!player.getGameMode().equals(GameMode.CREATIVE));
+                        event.setCancelled(e.isCancelled());
                         DurableBlocksAPI.getManager().getPlayer(event.getPlayer().getUniqueId()).setDigging(true);
                     } else {
                         PlayerStopDiggingEvent e = new PlayerStopDiggingEvent(event.getPlayer(), location.getBlock());

@@ -1,8 +1,6 @@
 package xyz.destiall.durableblocks.api;
 
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -10,11 +8,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public interface DurableBlocksAPI {
@@ -23,19 +17,21 @@ public interface DurableBlocksAPI {
     AtomicReference<Manager> player = new AtomicReference<>(null);
     AtomicReference<DurableConfig> config = new AtomicReference<>(null);
 
-    static NMS getNMS() {
-        return nmst.get();
-    }
-
     static void setNMS(NMS nms) {
-        if (getNMS() == null) {
+        if (getNMS() == null || nms == null) {
             nmst.set(nms);
         }
     }
 
     static void set(DurableBlocksAPI api) {
-        if (get() == null) {
+        if (get() == null || api == null) {
             inst.set(api);
+        }
+    }
+
+    static void setManager(Manager manager) {
+        if (getManager() == null || manager == null) {
+            player.set(manager);
         }
     }
 
@@ -43,10 +39,8 @@ public interface DurableBlocksAPI {
         return inst.get();
     }
 
-    static void setManager(Manager manager) {
-        if (getManager() == null) {
-            player.set(manager);
-        }
+    static NMS getNMS() {
+        return nmst.get();
     }
 
     static Manager getManager() {
@@ -67,31 +61,38 @@ public interface DurableBlocksAPI {
             if (configFile.createNewFile()) {
                 config = new YamlConfiguration();
                 List<Map<String, Map<String, Object>>> materialMappings = new ArrayList<>();
+                config.set("always-fatigue", true);
+                config.set("enabled-worlds", Arrays.asList("world", "world_nether"));
                 for (Material material : Material.values()) {
-                    if (!material.isSolid()) continue;
+                    if (!material.isBlock()) continue;
                     HashMap<String, Map<String, Object>> path = new HashMap<>();
                     HashMap<String, Object> values = new HashMap<>();
                     values.put("milliseconds-per-stage", material.isBurnable() ? 200 : material.hasGravity() ? 200 : material.isTransparent() ? 100 : 500);
                     values.put("expiry-length-after-stop-mining", 5000);
-                    values.put("need-tool-for-drops", material.isBlock());
+                    values.put("need-tool-for-drops", true);
+                    values.put("unbreakable", material == Material.BEDROCK);
                     values.put("block-break-sound", Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get().name());
                     values.put("block-break-effect", Effect.STEP_SOUND.name());
                     values.put("block-break-type", Material.AIR.name());
-                    List<Map<String, Object>> itemDrops = new ArrayList<>();
-                    Map<String, Object> itemMapping = new HashMap<>();
-                    itemMapping.put(material.name(), new ItemStack(material, 1));
-                    itemDrops.add(itemMapping);
+                    values.put("exp-drops", material.name().contains("ORE") ? 5 : 1);
+                    List<ItemStack> itemDrops = new ArrayList<>();
+                    itemDrops.add(new ItemStack(material, 1));
                     values.put("item-drops", itemDrops);
                     path.put(material.name(), values);
                     materialMappings.add(path);
                 }
                 config.set("blocks", materialMappings);
-                config.set("always-fatigue", true);
                 config.save(configFile);
             } else {
                 config = YamlConfiguration.loadConfiguration(configFile);
             }
             DurableBlocksAPI.config.set(new DurableConfig(config));
+            getManager().emptyWorlds();
+            for (String name : config.getStringList("enabled-worlds")) {
+                World world = Bukkit.getWorld(name);
+                if (world == null) continue;
+                getManager().enableWorld(world);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

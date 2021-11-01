@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.NMS;
 
@@ -89,5 +90,15 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public Player getBasePlayer() {
         return player;
+    }
+
+    @Override
+    public void breakItem(ItemStack hand) {
+        nmsPlayer.breakItem(hand);
+    }
+
+    @Override
+    public int getBreakingSpeed(ItemStack hand, Material block) {
+        return nmsPlayer.getBreakingSpeed(hand, block);
     }
 }

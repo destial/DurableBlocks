@@ -28,4 +28,5 @@ public interface DurableBlock {
     double getZ();
     World getWorld();
     boolean needTool();
+    boolean isUnbreakable();
 }

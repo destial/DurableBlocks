@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
 import java.util.Map;
 
 class DurableBlockImpl implements DurableBlock {
@@ -21,18 +22,20 @@ class DurableBlockImpl implements DurableBlock {
     private final ItemStack[] drops;
     private final int id;
     private final boolean need;
+    private final boolean unbreakable;
     public DurableBlockImpl(Block block) {
         id = (int) (Math.random() * 500);
         this.block = block;
         stage = -1;
         Map<String, Object> mapping = DurableBlocksAPI.getConfig().getMapping(block.getType());
-        interval = (int) mapping.getOrDefault("milliseconds-per-stage", 500);
-        expiry = (int) mapping.getOrDefault("expiry-length-after-stop-mining", 5000);
-        need = (boolean) mapping.getOrDefault("need-tool-for-drops", true);
-        breakSound = DurableBlocksAPI.getConfig().getSound(block.getType());
-        effect = DurableBlocksAPI.getConfig().getEffect(block.getType());
-        convert = DurableBlocksAPI.getConfig().getConvert(block.getType());
-        drops = DurableBlocksAPI.getConfig().getStacks(block.getType()).toArray(new ItemStack[0]);
+        interval = mapping != null ? (int) mapping.getOrDefault("milliseconds-per-stage", 500) : 0;
+        expiry = mapping != null ? (int) mapping.getOrDefault("expiry-length-after-stop-mining", 5000) : 0;
+        need = mapping != null && (boolean) mapping.getOrDefault("need-tool-for-drops", true);
+        unbreakable = mapping != null && (boolean) mapping.getOrDefault("unbreakable", false);
+        breakSound = mapping != null ? DurableBlocksAPI.getConfig().getSound(block.getType()) : Arrays.stream(Sound.values()).filter(s -> s.name().equals("BLOCK_STONE_BREAK") || s.name().equals("DIG_STONE")).findFirst().get();
+        effect = mapping != null ? DurableBlocksAPI.getConfig().getEffect(block.getType()) : Effect.STEP_SOUND;
+        convert = mapping != null ? DurableBlocksAPI.getConfig().getConvert(block.getType()) : Material.AIR;
+        drops = mapping != null ? DurableBlocksAPI.getConfig().getStacks(block.getType()).toArray(new ItemStack[0]) : null;
     }
     @Override
     public Block getBlock() {
@@ -130,5 +133,10 @@ class DurableBlockImpl implements DurableBlock {
     @Override
     public boolean needTool() {
         return need;
+    }
+
+    @Override
+    public boolean isUnbreakable() {
+        return unbreakable;
     }
 }

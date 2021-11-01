@@ -15,17 +15,17 @@ import net.minecraft.server.v1_11_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_11_R1.PacketPlayOutChat;
 import net.minecraft.server.v1_11_R1.PacketPlayOutEntityEffect;
 import net.minecraft.server.v1_11_R1.PacketPlayOutRemoveEntityEffect;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_11_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_11_R1.util.CraftMagicNumbers;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import xyz.destiall.durableblocks.api.ConnectedPlayer;
+import xyz.destiall.durableblocks.api.ToolCheck;
 import xyz.destiall.durableblocks.api.events.PlayerStartDiggingEvent;
 import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 
@@ -58,8 +58,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                                 setDigging(false);
                             }
                         }
-                        if (!player.getGameMode().equals(GameMode.CREATIVE))
-                            if (cancelled) return;
+                        if (cancelled) return;
                     }
                     super.channelRead(ctx, msg);
                 }
@@ -110,6 +109,43 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     @Override
     public void sendArmSwing() {
 
+    }
+
+    @Override
+    public void breakItem(ItemStack hand) {
+        if (ToolCheck.isTool(hand.getType())) {
+            int unbreaking = hand.getEnchantmentLevel(Enchantment.DURABILITY);
+            if (unbreaking == 0) {
+                hand.setDurability((short) (hand.getDurability() + 1));
+            } else {
+                double rand = unbreaking - (Math.random() * unbreaking);
+                if (rand <= unbreaking / 2.f) {
+                    hand.setDurability((short) (hand.getDurability() + 1));
+                }
+            }
+            if ((int)hand.getDurability() > (int)hand.getType().getMaxDurability()) {
+                player.setItemInHand(null);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            }
+        }
+    }
+
+    @Override
+    public int getBreakingSpeed(ItemStack hand, Material block) {
+        int multiplier = ToolCheck.getToolSpeedAgainstBlock(block, hand.getType());
+        if (multiplier != 1) {
+            if (ToolCheck.isPickaxe(hand.getType())) {
+                multiplier *= ToolCheck.getPickaxeLevel(hand.getType());
+            } else if (ToolCheck.isAxe(hand.getType())) {
+                multiplier *= ToolCheck.getAxeLevel(hand.getType());
+            } else if (ToolCheck.isShovel(hand.getType())) {
+                multiplier *= ToolCheck.getShovelLevel(hand.getType());
+            }
+            if (hand.getEnchantments() != null && hand.getEnchantments().containsKey(Enchantment.DIG_SPEED)) {
+                multiplier *= hand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+            }
+        }
+        return multiplier;
     }
 
     @Override

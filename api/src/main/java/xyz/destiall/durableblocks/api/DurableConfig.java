@@ -37,11 +37,10 @@ public class DurableConfig implements Map<String, Object> {
     public List<ItemStack> getStacks(Material material) {
         Map<String, Object> mapping = getMapping(material);
         if (mapping == null) return null;
-        List<Map<String, Object>> itemDrops = (List<Map<String, Object>>) mapping.get("item-drops");
+        List<Object> itemDrops = (List<Object>) mapping.get("item-drops");
         List<ItemStack> stacks = new ArrayList<>();
-        for (Map<String, Object> items : itemDrops) {
-            for (Object oitemStackMapping : items.values())
-            stacks.add((ItemStack) oitemStackMapping);
+        for (Object item : itemDrops) {
+            stacks.add((ItemStack) item);
         }
         return stacks;
     }

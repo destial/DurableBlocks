@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public interface ConnectedPlayer {
     void sendPacket(Object packet);
@@ -16,4 +17,6 @@ public interface ConnectedPlayer {
     boolean isDigging();
     void setDigging(boolean digging);
     Player getBasePlayer();
+    void breakItem(ItemStack hand);
+    int getBreakingSpeed(ItemStack hand, Material block);
 }

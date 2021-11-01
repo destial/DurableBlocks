@@ -55,5 +55,8 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
+        DurableBlocksAPI.setManager(null);
+        DurableBlocksAPI.setNMS(null);
+        DurableBlocksAPI.set(null);
     }
 }
