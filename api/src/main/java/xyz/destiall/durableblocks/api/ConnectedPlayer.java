@@ -19,4 +19,5 @@ public interface ConnectedPlayer {
     Player getBasePlayer();
     void breakItem(ItemStack hand);
     int getBreakingSpeed(ItemStack hand, Material block);
+    void unregister();
 }

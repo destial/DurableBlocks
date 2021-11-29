@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_8_R1.BlockPosition;
-import net.minecraft.server.v1_8_R1.ChatSerializer;
+import net.minecraft.server.v1_8_R1.ChatComponentText;
 import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
 import net.minecraft.server.v1_8_R1.MobEffect;
 import net.minecraft.server.v1_8_R1.NetworkManager;
@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
@@ -41,7 +42,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
             Field channelField = NetworkManager.class.getDeclaredField("i");
             channelField.setAccessible(true);
             Channel channel = (Channel) channelField.get(player.getHandle().playerConnection.networkManager);
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -89,7 +90,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendActionBar(String message) {
-        PacketPlayOutChat packet = new PacketPlayOutChat(ChatSerializer.a("{\"text\": \"" + message + "\"}"));
+        PacketPlayOutChat packet = new PacketPlayOutChat(new ChatComponentText(message), (byte) 2);
         sendPacket(packet);
     }
 
@@ -145,6 +146,18 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
             }
         }
         return multiplier;
+    }
+
+    @Override
+    public void unregister() {
+        try {
+            Field channelField = NetworkManager.class.getDeclaredField("i");
+            channelField.setAccessible(true);
+            Channel channel = (Channel) channelField.get(player.getHandle().playerConnection.networkManager);
+            channel.pipeline().remove(handler);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

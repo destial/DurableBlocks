@@ -34,12 +34,13 @@ import java.util.UUID;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
             Channel channel = player.getHandle().playerConnection.networkManager.channel;
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -69,6 +70,11 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void unregister() {
+        player.getHandle().playerConnection.networkManager.channel.pipeline().remove(handler);
     }
 
     @Override

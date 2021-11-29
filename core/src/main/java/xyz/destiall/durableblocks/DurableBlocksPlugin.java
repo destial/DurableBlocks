@@ -15,12 +15,7 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
     public void onEnable() {
         DurableBlocksAPI.set(this);
         DurableBlocksAPI.setManager(new Manager());
-        String version;
-        if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
-            version = "protocollib";
-        } else {
-            version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-        }
+        String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];;
         getLogger().info("You are using " + version);
         try {
             Class<?> clazz = Class.forName("xyz.destiall.durableblocks.nms." + version + ".NMSImpl");
@@ -43,6 +38,7 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
         }
         Bukkit.getPluginManager().registerEvents(new BlockListener(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        Bukkit.getOnlinePlayers().forEach(p -> DurableBlocksAPI.getManager().registerPlayer(p));
     }
 
     @Override
@@ -55,6 +51,8 @@ public final class DurableBlocksPlugin extends JavaPlugin implements DurableBloc
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
+        Bukkit.getOnlinePlayers().forEach(p -> DurableBlocksAPI.getManager().unregisterPlayer(p.getUniqueId()));
+        DurableBlocksAPI.getManager().clearBlocks();
         DurableBlocksAPI.setManager(null);
         DurableBlocksAPI.setNMS(null);
         DurableBlocksAPI.set(null);

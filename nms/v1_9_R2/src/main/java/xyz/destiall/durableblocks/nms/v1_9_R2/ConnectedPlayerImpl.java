@@ -31,12 +31,13 @@ import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
             Channel channel = player.getHandle().playerConnection.networkManager.channel;
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -70,6 +71,11 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     }
 
     @Override
+    public void unregister() {
+        player.getHandle().playerConnection.networkManager.channel.pipeline().remove(handler);
+    }
+
+    @Override
     public void sendPacket(Object packet) {
         player.getHandle().playerConnection.sendPacket((Packet<?>) packet);
     }
@@ -89,8 +95,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendActionBar(String message) {
-        ChatComponentText text = new ChatComponentText(message);
-        PacketPlayOutChat packet = new PacketPlayOutChat(text, (byte) 2);
+        PacketPlayOutChat packet = new PacketPlayOutChat(new ChatComponentText(message), (byte) 2);
         sendPacket(packet);
     }
 

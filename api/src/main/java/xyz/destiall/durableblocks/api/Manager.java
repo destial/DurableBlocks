@@ -26,6 +26,10 @@ public final class Manager {
     }
 
     public void unregisterPlayer(UUID uuid) {
+        ConnectedPlayer player = getPlayer(uuid);
+        if (player != null) {
+            player.unregister();
+        }
         players.remove(uuid);
     }
 
@@ -64,5 +68,9 @@ public final class Manager {
 
     public void emptyWorlds() {
         enabledWorlds.clear();
+    }
+
+    public void clearBlocks() {
+        blocks.clear();
     }
 }

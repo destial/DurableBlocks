@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.server.v1_8_R2.BlockPosition;
-import net.minecraft.server.v1_8_R2.IChatBaseComponent;
+import net.minecraft.server.v1_8_R2.ChatComponentText;
 import net.minecraft.server.v1_8_R2.MobEffect;
 import net.minecraft.server.v1_8_R2.Packet;
 import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig;
@@ -30,12 +30,13 @@ import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
             Channel channel = player.getHandle().playerConnection.networkManager.k;
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -89,7 +90,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
 
     @Override
     public void sendActionBar(String message) {
-        PacketPlayOutChat packet = new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + message + "\"}"));
+        PacketPlayOutChat packet = new PacketPlayOutChat(new ChatComponentText(message), (byte) 2);
         sendPacket(packet);
     }
     @Override
@@ -144,6 +145,11 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
             }
         }
         return multiplier;
+    }
+
+    @Override
+    public void unregister() {
+        player.getHandle().playerConnection.networkManager.k.pipeline().remove(handler);
     }
 
     @Override

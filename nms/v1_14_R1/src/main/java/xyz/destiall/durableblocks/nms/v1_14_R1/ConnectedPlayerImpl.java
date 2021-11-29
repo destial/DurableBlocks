@@ -32,12 +32,13 @@ import xyz.destiall.durableblocks.api.events.PlayerStopDiggingEvent;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
             Channel channel = player.getHandle().playerConnection.networkManager.channel;
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -63,7 +64,7 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                     super.channelRead(ctx, msg);
                 }
             };
-            channel.pipeline().addBefore("packet_handler", player.getName(), handler);
+            channel.pipeline().addBefore("packet_handler", player.getName() + "_durableblocks", handler);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -78,6 +79,11 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
     public void sendBlockBreakingAnimation(Block block, int stage) {
         PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation((int) block.getLocation().length(), new BlockPosition(block.getX(), block.getY(), block.getZ()), stage);
         ((CraftWorld) block.getWorld()).getHandle().getServer().getHandle().sendPacketNearby(player.getHandle(), block.getX(), block.getY(), block.getZ(), 60, ((CraftWorld) player.getWorld()).getHandle().getWorldProvider().getDimensionManager(), packet);
+    }
+
+    @Override
+    public void unregister() {
+        player.getHandle().playerConnection.networkManager.channel.pipeline().remove(handler);
     }
 
     @Override

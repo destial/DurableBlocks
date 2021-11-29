@@ -16,7 +16,6 @@ import net.minecraft.network.protocol.game.PacketPlayOutRemoveEntityEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectList;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -38,12 +37,13 @@ import java.util.UUID;
 public class ConnectedPlayerImpl implements ConnectedPlayer {
     private final CraftPlayer player;
     private boolean digging;
+    private ChannelDuplexHandler handler;
 
     public ConnectedPlayerImpl(CraftPlayer player) {
         this.player = player;
         try {
             Channel channel = player.getHandle().b.a.k;
-            ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+            handler = new ChannelDuplexHandler() {
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                     if (msg instanceof PacketPlayInBlockDig) {
@@ -69,10 +69,15 @@ public class ConnectedPlayerImpl implements ConnectedPlayer {
                     super.channelRead(ctx, msg);
                 }
             };
-            channel.pipeline().addBefore("packet_handler", player.getName(), handler);
+            channel.pipeline().addBefore("packet_handler", player.getName() + "_durableblocks", handler);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void unregister() {
+        player.getHandle().b.a.k.pipeline().remove(handler);
     }
 
     @Override

@@ -10,6 +10,8 @@ import xyz.destiall.durableblocks.api.ConnectedPlayer;
 import xyz.destiall.durableblocks.api.DurableBlock;
 import xyz.destiall.durableblocks.api.NMS;
 
+import java.util.UUID;
+
 
 public class NMSImpl implements NMS {
 

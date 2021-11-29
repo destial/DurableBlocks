@@ -63,6 +63,7 @@ final class BlockListener implements Listener {
                 }
                 Long time = blockNextPossible.get(entry.getValue());
                 if (time == null) continue;
+                int prevStage = entry.getValue().getStage();
                 if (time <= System.currentTimeMillis()) {
                     int prev = entry.getValue().getStage();
                     if (prev == 9) {
@@ -90,8 +91,8 @@ final class BlockListener implements Listener {
                     DurableBlocksAPI.getNMS().sendBreakingAnimation(null, entry.getValue());
                 }
 
-                // Send block break progress
-                player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&aProgress: " + getProgress(entry.getValue().getStage())));
+                if (prevStage != entry.getValue().getStage())
+                    player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&aProgress: " + getProgress(entry.getValue().getStage())));
             }
             for (Object clear : clearing) {
                 miningBlocks.remove(clear);
@@ -113,9 +114,11 @@ final class BlockListener implements Listener {
         final DurableBlock durableBlock = DurableBlocksAPI.getManager().getBlock(location);
         if (durableBlock.isUnbreakable()) return;
         if (durableBlock.timePerStage() <= 0) return;
+        if (!DurableBlocksAPI.getConfig().getBool("always-fatigue")) {
+            connectedPlayer.addFatigue(20, 5);
+        }
         miningBlocks.put(player.getUniqueId(), durableBlock);
         ItemStack inHand = e.getPlayer().getItemInHand();
-
         long multiplier = 1;
         if (inHand != null) {
             if (!durableBlock.getBlock().getDrops(inHand).isEmpty()) {
@@ -148,6 +151,10 @@ final class BlockListener implements Listener {
         if (miningBlocks.remove(e.getPlayer().getUniqueId()) != null) {
             DurableBlock durableBlock = DurableBlocksAPI.getManager().getBlock(e.getBlock().getLocation());
             blockExpiry.put(durableBlock, System.currentTimeMillis() + durableBlock.getExpiryLength());
+            ConnectedPlayer player = DurableBlocksAPI.getManager().getPlayer(e.getPlayer().getUniqueId());
+            if (!DurableBlocksAPI.getConfig().getBool("always-fatigue")) {
+                player.removeFatigue();
+            }
         }
     }
 
@@ -166,7 +173,6 @@ final class BlockListener implements Listener {
             DurableBlocksAPI.getManager().unregisterBlock(block.getLocation());
             return;
         }
-        // No no insta break
         e.setInstaBreak(false);
         e.setCancelled(true);
     }
